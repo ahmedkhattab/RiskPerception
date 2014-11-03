@@ -28,6 +28,7 @@ public class Project extends Model {
         Project project = new Project(name, folder, User.find.ref(owner));
         project.save();
         project.saveManyToManyAssociations("members");
+        
         return project;
     }
 
