@@ -1,0 +1,24 @@
+@(emotionForm: Form[views.formdata.EmotionFormData], 
+  preprocessing: Map[String,Boolean],
+  dataAvailable: Boolean) 
+
+@import helper._ 
+@import controllers.routes.javascript._ 
+
+@main("Emotion Measurement") {
+<div class="container">
+	<div class="well">
+
+		@form(routes.Application.postEmotion(), 'class -> "form-horizontal") {
+		@emotionFieldset(emotionForm, preprocessing, dataAvailable) } 
+	</div>
+			@if(dataAvailable) { @form(routes.Application.saveData(), 'class ->
+			"form-horizontal") {
+			<button id="save" type="submit" value="Save" class="btn btn-primary">Save
+				Collected Data</button>
+			} }
+</div>
+
+
+
+}

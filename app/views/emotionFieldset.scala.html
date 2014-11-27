@@ -1,0 +1,208 @@
+@(emotionForm: Form[views.formdata.EmotionFormData], preprocessing:
+Map[String, Boolean], dataAvailable: Boolean) 
+
+@import bootstrap3._
+<style>
+.panel-heading .accordion-toggle:after {
+	font-family: 'Glyphicons Halflings';
+	content: "\e114";
+	float: right;
+	color: grey;
+}
+
+.panel-heading .accordion-toggle.collapsed:after {
+	content: "\e080";
+}
+</style>
+<fieldset>
+	<!-- Header -->
+	<div id="legend">
+		<legend>Emotion Measurement</legend>
+	</div>
+
+	<div class="col-sm-8">
+		<div id="loadedMsgs" class="flash well col-sm-offset-2" style="display: none;">
+			<div class="text-success">
+				</div>
+				</div>
+		@if(flash.containsKey("success")) {
+		<div class="flash well col-sm-offset-2">
+			<div id="success-message" class="text-success">
+				@flash.get("success")</div>
+		</div>
+		} @if(flash.containsKey("error")) {
+		<div class="flash well col-sm-offset-2">
+			<div id="error-message" class="text-danger">
+				@flash.get("error")</div>
+		</div>
+		}
+		<!-- Name -->
+		@if(!dataAvailable){
+
+		<div class="panel panel-default col-sm-offset-2">
+			<div class="panel-heading" role="tab" id="headingOne">
+				<h4 class="panel-title">Load Data From File</h4>
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<span class="btn btn-default fileinput-button btn-sm"  style="margin-left: 30px;"> <i
+						class="glyphicon glyphicon-plus"></i> <span>Select file...</span>
+						<!-- The file input field used as target for the file upload widget -->
+						<input id="fileupload" type="file" name="file">
+					</span> <span id="files" class="files"></span>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-sm-5 control-label">Position of date
+						column</label>
+					<div class="col-sm-2" style="width: 84px;">
+						<input type="number" class="form-control input-sm"
+							id="date_column_pos" name="date_column_pos" value="" min="1"
+							placeholder="" /> <span class="help-block"></span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-5 control-label">Position of message
+						column</label>
+					<div class="col-sm-2" style="width: 84px;">
+						<input type="number" class="form-control input-sm"
+							id="msg_column_pos" name="msg_column_pos" value="" min="1"
+							placeholder="" /> <span class="help-block"></span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-5 control-label">Separator symbol</label>
+					<div class="col-sm-2" style="width: 84px;">
+						<input type="text" class="form-control input-sm" id="separator"
+							name="separator" value="" placeholder="" /> <span
+							class="help-block"></span>
+					</div>
+				</div>
+				<div class="form-group">
+
+					<div class="checkbox" id="add_after_msg_div" style="margin-left: 30px;">
+						<label> <input type="checkbox" name="add_after_msg"
+				            id="add_after_msg" value="true">
+							Consider all data after message as part of the message ?
+						</label>
+					</div>
+				</div>
+				<div id='upload'>
+				</div>
+				<div id="progress" class="progress"
+					style="height: 14px; margin-top: 7px; display: none;">
+					<div class="progress-bar progress-bar-success progress-bar-striped"></div>
+				</div>
+				
+			</div>
+			<!-- The container for the uploaded files -->
+		</div>
+		
+		}
+			
+		<div class="panel panel-default col-sm-offset-2">
+			<div class="panel-heading" role="tab" id="headingOne">
+				<h4 class="panel-title">Preprocess Data</h4>
+			</div>
+			<div class="panel-body">
+				@checkboxes(emotionForm("preprocessing"), label = "", checkboxMap =
+				preprocessing, help = "")</div>
+		</div>
+		
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button id="measure-submit" type="submit" value="Submit"
+					class="btn btn-primary">Start Measuring</button>
+			</div>
+		</div>
+		
+		<div id="vis-panel" class="col-sm-offset-2" style="display: none;">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Visualize Results</h3>
+                    <span class="pull-right">
+                        <!-- Tabs -->
+                        <ul class="nav panel-tabs">
+                            <li class="active"><a href="#tab1" data-toggle="tab">Time Course</a></li>
+                            <li><a href="#tab2" data-toggle="tab">Distribution</a></li>
+                            <li><a href="#tab3" data-toggle="tab">Instance Count</a></li>
+                        </ul>
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="tab1">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At</div>
+                        <div class="tab-pane" id="tab2">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</div>
+                        <div class="tab-pane" id="tab3">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	
+
+	</div>
+</fieldset>
+<script>
+	/*jslint unparam: true */
+	/*global window, $ */
+	$('#measure-submit').click(function(e)
+			{
+		$('#vis-panel').show();
+			});
+	$(function() {
+           
+		// Change this to the location of your server-side upload handler:
+		$('#fileupload').fileupload({
+			url : '@routes.Application.handleUpload()',
+			dataType : 'json',
+		   add: function (e, data) {
+			   $('.flash').hide();
+			   var uploadButton = $('<button/>')
+		        .addClass('btn btn-success')
+		        .text('Processing...')
+		        .prop('type','button')
+		        .on('click', function () {
+					$('#progress').show()
+		            var $this = $(this),
+		                data = $this.data();
+		            $this
+		                .off('click')
+		                .text('Abort')
+		                .removeClass('btn-success')
+		                .addClass('btn-danger')
+		                .on('click', function () {
+		                    $this.remove();
+		                    data.abort();
+		                });
+		            data.submit().always(function () {
+		                $this.remove();
+		            });
+		        });
+			   
+			  	uploadButton.text('Upload').data(data);
+	            data.context = $('#upload').append(uploadButton);
+				$('#progress .progress-bar').css('width', 0 + '%');
+				$.each(data.files, function(index, file) {
+					$('#files').text(file.name);
+				});
+	        },
+			progressall : function(e, data) {
+				console.log(data.loaded);
+				var progress = parseInt(data.loaded / data.total * 100, 10);
+				$('#progress .progress-bar').css('width', progress + '%');
+		
+			},
+			done : function(e, data) {
+				$('#progress').delay( 700 ).hide(1);
+					$('#files').text(data.result.file);
+					$('#loadedMsgs').delay( 1000 ).show(1);
+					$('#loadedMsgs > div').text("Finished loading data: Collected "
+							+ data.result.loaded
+							+ " message(s)");
+					$('#files').empty();
+				
+			}
+		}).prop('disabled', !$.support.fileInput).parent().addClass(
+				$.support.fileInput ? undefined : 'disabled');
+	});
+</script>
