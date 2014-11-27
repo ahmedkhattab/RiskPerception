@@ -1,5 +1,6 @@
 package views.formdata;
 
+import play.data.validation.Constraints.Required;
 import play.data.validation.ValidationError;
 
 import java.util.ArrayList;
@@ -17,32 +18,20 @@ import java.util.List;
  */
 public class QueryFormData {
 
+  @Required(message = "")
   public String query = "";
-  public String password = "";
-  public List<String> hobbies = new ArrayList<>(); 
-  public String level = "";
-  public String gpa = "";
-  public List<String> majors = new ArrayList<>(); 
-
+  @Required(message = "")
+  public String numOfSites = "";
+  @Required(message = "")
+  public String fromDate = "";
+  @Required(message = "")
+  public String toDate = "";
+  
+  public String lang = "";
   /** Required for form instantiation. */
   public QueryFormData() {
   }
-
-  /**
-   * Creates an initialized form instance. Assumes the passed data is valid. 
-   * @param name The name.
-   * @param password The password.
-   * @param level The level.
-   * @param gpa The GPA.
-   * @param hobbies The hobbies.
-   * @param majors The majors. 
-   */
-  public QueryFormData(String query) {
-    this.query = query;
-
-
-  }
-
+  
   /**
    * Validates Form<StudentFormData>.
    * Called automatically in the controller by bindFromRequest().
@@ -62,11 +51,10 @@ public class QueryFormData {
   public List<ValidationError> validate() {
 
     List<ValidationError> errors = new ArrayList<>();
-
-    if (query == null || query.length() == 0) {
-      errors.add(new ValidationError("query", "No search keywords were given."));
+    
+    if (!tools.Utils.isNumeric(numOfSites)) {
+    	errors.add(new ValidationError("numOfSites", "Only numbers are accepted for this field."));
     }
-
 
     /*
     // Hobbies are optional, but if supplied must exist in database.

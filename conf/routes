@@ -3,9 +3,18 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index(id: Long ?= 0)
+GET     /                           controllers.Application.index()
+GET     /collect                    controllers.Application.index()
+GET     /emotion                    controllers.Application.emotion()
 POST    /                           controllers.Application.postIndex()
+POST    /emotion                    controllers.Application.postEmotion()
+POST    /save                       controllers.Application.saveData()
+POST    /emotion/upload             controllers.Application.handleUpload()
+
+# GET     /preprocess                 controllers.Application.preprocess()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
+
+GET    /javascriptRoutes    controllers.Application.javascriptRoutes

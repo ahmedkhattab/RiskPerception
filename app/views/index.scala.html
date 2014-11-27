@@ -1,30 +1,34 @@
-@(queryForm: Form[views.formdata.QueryFormData])
+@(queryForm: Form[views.formdata.QueryFormData], 
+  lang: Map[String,Boolean],
+  dataAvailable: Boolean) 
 
-@import helper._
+@import helper._ 
+@import controllers.routes.javascript._ 
 
 @main("Index") {
 <div class="container">
-  <div class="well">
+	<div class="well">
 
-    @form(routes.Application.postIndex(), 'class -> "form-horizontal") {
-      @fieldset(queryForm)
-    }
-  </div>
-
-  @if(flash.containsKey("success")) {
-  <div class="well">
-    <div id="success-message" class="text-success">
-      @flash.get("success")
-    </div>
-  </div>
-  }
-  @if(flash.containsKey("error")) {
-  <div class="well">
-    <div id="error-message" class="text-danger">
-      @flash.get("error")
-  </div>
-    </div>
-  }
+		@form(routes.Application.postIndex(), 'class -> "form-horizontal") {
+		@queryFieldset(queryForm, lang) } @if(flash.containsKey("success")) {
+		<div class="well">
+			<div id="success-message" class="text-success">
+				@flash.get("success")</div>
+		</div>
+		} @if(flash.containsKey("error")) {
+		<div class="well">
+			<div id="error-message" class="text-danger">
+				@flash.get("error")</div>
+		</div>
+		}
+	</div>
+	@if(dataAvailable) { @form(routes.Application.saveData(), 'class ->
+	"form-horizontal") {
+	<button id="save" type="submit" value="Save" class="btn btn-primary">Save
+		Collected Data</button>
+	} }
 </div>
+
+
 
 }

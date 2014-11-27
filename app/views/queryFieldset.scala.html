@@ -1,0 +1,45 @@
+@(queryForm: Form[views.formdata.QueryFormData],
+  lang: Map[String, Boolean])
+
+@import bootstrap3._
+
+<fieldset>
+  <!-- Header -->
+  <div id="legend">
+    <legend>Search</legend>
+  </div>
+
+   <!-- Name -->
+  @text(queryForm("query"),
+        label = "Search",
+        placeholder = "keywords",
+        help = "")
+        
+   @select(queryForm("lang"),
+          label = "Language",
+          optionMap = lang,
+          isMultiple = false,
+          help = "")
+    	
+	@text(queryForm("numOfSites"),
+        label = "Number of sites",
+        placeholder = "100",
+        help = "")
+       <div class="form-group">   
+	@datepicker(queryForm("fromDate"),
+		  label = "From",
+		  placeholder = "dd.mm.yyyy",
+		  help = "")
+	
+	@datepicker(queryForm("toDate"),
+		  label = "To",
+		  placeholder = "dd.mm.yyyy",
+		  help = "")
+  </div>
+  <div class="form-group">
+
+    <div class="col-sm-offset-2 col-sm-10">
+      <button id="submit" type="submit" value="Submit" class="btn btn-primary">Start Collecting</button>
+    </div>
+  </div>
+</fieldset>

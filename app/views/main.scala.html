@@ -5,9 +5,17 @@
   <head>
     <title>Risk Perception Analysis</title>
     <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.min.css"))">
+    <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.min.css"))">
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/tabbedPanel.css")">
+    <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("css/jquery.fileupload.css"))">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-
+	 
+	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))"></script>
+	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.min.js"))"></script>
+	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/jquery.fileupload.js"))"></script>
+    <script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
+    <script type="text/javascript" src='@routes.Application.javascriptRoutes()'></script>
   </head>
   <body>
   <div class="navbar navbar-inverse" role="navigation">
@@ -19,17 +27,77 @@
         </button>
         <a class="navbar-brand" href="/">Risk Perception Analysis Platform</a>
       </div>
+      <div class="collapse navbar-collapse" id="nav-bar">
+      <ul class="nav navbar-nav">
+        <li><a href="/collect">Data Collection <span class="sr-only">(current)</span></a></li>
+        <li class="dropdown">
+          <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Data Operations <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/emotion">Emotion Measurement</a></li>
+            <li><a href="/classification">Data Classification</a></li>
+      
+            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+            <li class="divider"></li>
+            <li><a href="#">One more separated link</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collaps -->
+    
     </div>
   </div>
 
     @content
-    <script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))"></script>
-    <script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
+   
 
     <!-- Enable tooltips. Used primarily to validate that JQuery + Bootstrap JS are loaded. Remove this script if you don't want tooltips. -->
     <script type="text/javascript">
+    
+    var path = window.location.pathname;
+    console.log(path);
+    path = path.replace(/\/$/, "");
+    path = decodeURIComponent(path);
+
+    $("#nav-bar a").each(function () {
+        var href = $(this).attr('href');
+        console.log(href);
+        console.log(path);
+        if(href.length != 0)
+        	{
+        if (path.substring(0, href.length) === href) {
+            $(this).closest('li').addClass('active');
+            if( $(this).closest('li').parent().closest('li').hasClass('dropdown') )
+            	 $(this).closest('li').parent().closest('li').addClass('active');
+        }
+        	}
+    });
+    
+    
     jQuery(function ($) {
         $("[rel='tooltip']").tooltip()
+    });
+    $(function() {
+    $( "#fromDate" ).datepicker({
+    defaultDate: "+1w",
+    changeMonth: true,
+    numberOfMonths: 2,
+    dateFormat: "dd.mm.yy",
+    onClose: function( selectedDate ) {
+    	 $( "#fromDate" ).val(selectedDate);
+    $( "#toDate" ).datepicker( "option","minDate",$('#fromDate').datepicker('getDate') );
+    }
+    });
+    $( "#toDate" ).datepicker({
+    defaultDate: "+1w",
+    changeMonth: true,
+    numberOfMonths: 2,
+    dateFormat: "dd.mm.yy",
+    onClose: function( selectedDate ) {
+    	 $( "#toDate" ).val(selectedDate);
+    $( "#fromDate" ).datepicker("option","maxDate",$('#toDate').datepicker('getDate'));
+    }
+    });
     });
     </script>
   </body>
