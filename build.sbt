@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.0.0" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "1.8.3",
   "org.webjars" % "jquery-ui" % "1.11.1",
-  "org.webjars" % "jquery-file-upload" % "9.8.0"
+  "org.webjars" % "jquery-file-upload" % "9.8.0",
+  "org.webjars" % "highcharts" % "4.0.4"
 )
 
 resolvers ++= Seq(

@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * The controller for the single page of this application.
  * 
- * @author Philip Johnson
+ * @author Ahmed Khattab
  */
 public class Application extends Controller {
 	public static DataManager dataManager = new DataManager();
@@ -64,21 +64,21 @@ public class Application extends Controller {
 				emotionData);
 		if(dataManager.getData().size() == 0){
 			flash("error", "No data loaded");
-			return ok(emotion.render(formData,
-					PreprocessingChoice.makePreprocessingMap(), false));
+			return badRequest(emotion.render(formData,
+					PreprocessingChoice.makePreprocessingMap(), false, false));
 		}
 		else
 		{
 		return ok(emotion.render(formData,
-				PreprocessingChoice.makePreprocessingMap(), true));
+				PreprocessingChoice.makePreprocessingMap(), true, false));
 		}
 	}
 	
 	public static Result handleUpload() {
 		MultipartFormData body = request().body().asMultipartFormData();
         FilePart fileToUpload = body.getFile("file");
-        int msgColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("msg_column_pos")[0]);
-        int dateColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("date_column_pos")[0]);
+        int msgColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("msg_column_pos")[0])-1;
+        int dateColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("date_column_pos")[0])-1;
         boolean addAfterMsg = false;
         if(body.asFormUrlEncoded().get("add_after_msg") != null)
         	 addAfterMsg =Boolean.parseBoolean(body.asFormUrlEncoded().get("add_after_msg")[0]);
@@ -93,7 +93,6 @@ public class Application extends Controller {
 						dataManager.setDataFromFileAdaptor(dateColumnPosition, msgColumnPosition, separator, addAfterMsg, newFile.toFile());
 						response().setContentType("application/json");
 				        ObjectNode result = Json.newObject();
-				        System.out.println(newFile.getFileName().toString());
 				        result.put("file", newFile.getFileName().toString());
 				        result.put("loaded", dataManager.getData().size());
 				        return ok(result);
@@ -107,7 +106,7 @@ public class Application extends Controller {
     		Form<EmotionFormData> formData = Form.form(EmotionFormData.class).fill(
     				emotionData);
     		return badRequest(emotion.render(formData,
-					PreprocessingChoice.makePreprocessingMap(), false));
+					PreprocessingChoice.makePreprocessingMap(), false, false));
 	}
 	
 	/**
@@ -121,6 +120,8 @@ public class Application extends Controller {
 	 */
 	public static ArrayList<TimedMessage> preprocess(String[] preprocessing) {
 		ArrayList<TimedMessage> data = dataManager.getData();
+		if(preprocessing == null)
+			return data;
 		for (String command : preprocessing) {
 
 			switch (PreprocessingChoice.findChoice(command).getId()) {
@@ -145,15 +146,37 @@ public class Application extends Controller {
 		}
 		return data;
 	}
-	
+	public static Result handlePlot(String plotType) {
+		switch(plotType){
+			case "emotion-values": 
+				return handleEmotionValuesPlot();
+			case "moving-avg":
+			break;	
+			case "regression":
+			break;
+			default: return badRequest();
+		}
+		return TODO;
+		
+		
+	}
+	private static Result handleEmotionValuesPlot() {
+		ObjectNode result = emotionMeasurementManager.getJsonTimeSeries(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
+		response().setContentType("application/json");
+		return ok(result);
+	}
+
 	/**
 	 * handle saving of data collected to a csv and serving
 	 * it to client
 	 *  
 	 * @return The index page with the results of validation.
 	 */
-	public static Result saveData() {
+	public static Result saveData(String dataType) {
 		try {
+		if(dataType.equals("raw-data"))
+		{
+	
 			File dataFile = dataManager.getDatainFile();
 			if (dataFile == null)
 
@@ -161,9 +184,35 @@ public class Application extends Controller {
 			response().setHeader("Content-disposition",
 					"attachment; filename=collected_data.csv");
 			return ok(dataFile);
-		} catch (IOException e) {
+		} 
+		else
+			if(dataType.equals("em-values"))
+			{
+				File dataFile = emotionMeasurementManager.saveResultsToFile();
+				response().setContentType("application/x-download");
+				response().setHeader("Content-disposition",
+						"attachment; filename=Emotion_Measurement_Results.csv");
+				return ok(dataFile);
+			}
+			else
+			{
+				flash("error", "Error downloading data");
+				EmotionFormData emotionData = new EmotionFormData();
+				Form<EmotionFormData> formData = Form.form(EmotionFormData.class).fill(
+						emotionData);
+				return ok(emotion.render(formData,
+						PreprocessingChoice.makePreprocessingMap(), false, false));
+				
+			}
+		}
+		catch (IOException e) {
 			e.printStackTrace();
-			return null;
+			flash("error", "Error downloading data");
+			EmotionFormData emotionData = new EmotionFormData();
+			Form<EmotionFormData> formData = Form.form(EmotionFormData.class).fill(
+					emotionData);
+			return ok(emotion.render(formData,
+					PreprocessingChoice.makePreprocessingMap(), false, false));
 		}
 	}
 
@@ -183,12 +232,12 @@ public class Application extends Controller {
 		if (form.hasErrors()) {
 			flash("error", "Please correct errors above.");
 			return badRequest(emotion.render(form,
-					PreprocessingChoice.makePreprocessingMap(), false));
+					PreprocessingChoice.makePreprocessingMap(), false, false));
 		} else {
 			if(dataManager.getData().size() == 0){
 				flash("error", "Error: first, some data have to be collected or loaded from file");
 				return badRequest(emotion.render(form,
-						PreprocessingChoice.makePreprocessingMap(), false));
+						PreprocessingChoice.makePreprocessingMap(), false, false));
 			}
 			else {
 			try {
@@ -198,15 +247,13 @@ public class Application extends Controller {
 				String[] checkedVal = request().body().asFormUrlEncoded().get("preprocessing[]");
 				ArrayList<TimedMessage> data = preprocess(checkedVal);
 				emotionMeasurementManager.assessMessages(data);
-				File dataFile = emotionMeasurementManager.saveResultsToFile();
-				response().setContentType("application/x-download");
-				response().setHeader("Content-disposition",
-						"attachment; filename=Emotion_Measurement_Results.csv");
-				return ok(dataFile);
+				flash("success", "Emotion measurement for "+ emotionMeasurementManager.getAssessedMessages().size() +" message(s) completed successfully");
+				return ok(emotion.render(form,
+						PreprocessingChoice.makePreprocessingMap(), false, true));
 			} catch (IOException e) {
 				e.printStackTrace();
 				return badRequest(emotion.render(form,
-						PreprocessingChoice.makePreprocessingMap(), false));
+						PreprocessingChoice.makePreprocessingMap(), false, false));
 			}
 		}
 	}
@@ -273,7 +320,8 @@ public class Application extends Controller {
 	    response().setContentType("text/javascript");
 	    return ok(
 	        Routes.javascriptRouter("jsRoutes",
-	            routes.javascript.Application.handleUpload()
+	            routes.javascript.Application.handleUpload(),
+	            routes.javascript.Application.handlePlot()
 	        )
 	    );
 	}

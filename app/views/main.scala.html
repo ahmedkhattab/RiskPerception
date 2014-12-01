@@ -13,6 +13,8 @@
 	 
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))"></script>
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.min.js"))"></script>
+	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("highcharts.js"))"></script>
+	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("modules/exporting.js"))"></script>
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/jquery.fileupload.js"))"></script>
     <script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
     <script type="text/javascript" src='@routes.Application.javascriptRoutes()'></script>
@@ -36,10 +38,7 @@
             <li><a href="/emotion">Emotion Measurement</a></li>
             <li><a href="/classification">Data Classification</a></li>
       
-            <li class="divider"></li>
-            <li><a href="#">Separated link</a></li>
-            <li class="divider"></li>
-            <li><a href="#">One more separated link</a></li>
+          
           </ul>
         </li>
       </ul>
@@ -55,14 +54,11 @@
     <script type="text/javascript">
     
     var path = window.location.pathname;
-    console.log(path);
     path = path.replace(/\/$/, "");
     path = decodeURIComponent(path);
 
     $("#nav-bar a").each(function () {
         var href = $(this).attr('href');
-        console.log(href);
-        console.log(path);
         if(href.length != 0)
         	{
         if (path.substring(0, href.length) === href) {
@@ -79,20 +75,22 @@
     });
     $(function() {
     $( "#fromDate" ).datepicker({
-    defaultDate: "+1w",
+    defaultDate: "0",
     changeMonth: true,
-    numberOfMonths: 2,
+    numberOfMonths: 1,
     dateFormat: "dd.mm.yy",
+    maxDate: "0",
     onClose: function( selectedDate ) {
     	 $( "#fromDate" ).val(selectedDate);
     $( "#toDate" ).datepicker( "option","minDate",$('#fromDate').datepicker('getDate') );
     }
     });
     $( "#toDate" ).datepicker({
-    defaultDate: "+1w",
+    defaultDate: "0",
     changeMonth: true,
-    numberOfMonths: 2,
+    numberOfMonths: 1,
     dateFormat: "dd.mm.yy",
+    maxDate: "0",
     onClose: function( selectedDate ) {
     	 $( "#toDate" ).val(selectedDate);
     $( "#fromDate" ).datepicker("option","maxDate",$('#toDate').datepicker('getDate'));

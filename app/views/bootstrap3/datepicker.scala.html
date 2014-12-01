@@ -1,6 +1,8 @@
 @(field: Field, label: String = "CHANGEME", placeholder: String = "",
 help:String = "")
-<div class="@if(field.hasErrors) {has-error}">
+<div class="@if(field.hasErrors) {has-error}" style="
+    margin-top: -10px;
+">
 		<label for="@(field.id+ "_picker")" class="col-sm-2 control-label">@label</label>
 		<div class="input-group col-sm-3" id="@(field.id+ "_picker")">
 			<input id="@field.id" name="@field.name" type="text" class="date-picker form-control"

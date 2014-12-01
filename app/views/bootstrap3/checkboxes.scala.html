@@ -1,9 +1,9 @@
 @(field: Field, label: String = "CHANGEME", checkboxMap: Map[String, Boolean], help:String = "")
 
-  <div class="form-group @if(field.hasErrors) {has-error} ">
+  <div class="form-group @if(field.hasErrors) {has-error} " style="margin-left: 15px;">
    
       @for((checkboxName, isChecked) <- checkboxMap) {
-       <div class="checkbox col-sm-offset-1" id="@field.id">
+       <div class="checkbox" id="@field.id">
         <label>
           <input
             type="checkbox"

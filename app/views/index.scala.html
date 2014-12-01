@@ -22,7 +22,7 @@
 		</div>
 		}
 	</div>
-	@if(dataAvailable) { @form(routes.Application.saveData(), 'class ->
+	@if(dataAvailable) { @form(routes.Application.saveData("raw-data"), 'class ->
 	"form-horizontal") {
 	<button id="save" type="submit" value="Save" class="btn btn-primary">Save
 		Collected Data</button>

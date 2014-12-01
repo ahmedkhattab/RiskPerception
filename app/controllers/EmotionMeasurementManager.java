@@ -6,10 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -28,6 +31,13 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
+import play.libs.Json;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonArray;
 
 import tools.InputOptionCollection;
 import tools.DataTypes.AssessedTimedMessage;
@@ -206,6 +216,7 @@ public class EmotionMeasurementManager {
 		}
 
 		this.assessedResult = result;
+		System.out.println(this.assessedResult.size());
 	}
 
 	/**
@@ -300,7 +311,7 @@ public class EmotionMeasurementManager {
 		// Used code example:
 		// http://dvillela.servehttp.com:4000/apostilas/jfreechart_tutorial.pdf
 		TimeSeries series = new TimeSeries("Emotion value");
-		HashMap<String, DateValueCounter> timeByDate = aggregateByDate();
+		TreeMap<String, DateValueCounter> timeByDate = aggregateByDate();
 		if (timeByDate.size() < 2) {
 			// Used code example: http://java-tutorial.org/joptionpane.html
 			JOptionPane.showMessageDialog(null,
@@ -320,7 +331,26 @@ public class EmotionMeasurementManager {
 		dataset.addSeries(series);
 		return dataset;
 	}
-
+	
+	
+	public ObjectNode getJsonTimeSeries(int yAxisValue) {
+		TreeMap<String, DateValueCounter> timeByDate = aggregateByDate();
+		ObjectNode result = Json.newObject();
+		ArrayNode dataArray = result.putArray("data");
+		for (DateValueCounter element : timeByDate.values()) {
+			ArrayNode array = dataArray.addArray();
+			double value = 0;
+			if (yAxisValue == EmotionMeasurementManager.Y_AXIS_INSTANCE_COUNTER) {
+				value = element.getCounter();
+			} else {
+				value = element.getAverage();
+			}
+			array.add(element.getDate().getTime()).add(value);
+			
+		}
+		return result;
+		
+	}
 	/**
 	 * This method convert from Date-Format to Day-Format.
 	 * 
@@ -341,8 +371,23 @@ public class EmotionMeasurementManager {
 	 * 
 	 * @return The aggregated assessedData.
 	 */
-	private HashMap<String, DateValueCounter> aggregateByDate() {
-		HashMap<String, DateValueCounter> map = new HashMap<String, DateValueCounter>();
+	private TreeMap<String, DateValueCounter> aggregateByDate() {
+		Comparator<String> comparator = new Comparator<String>() {
+			  public int compare(String o1, String o2) {
+				  if(o1.equals(o2))
+					  return 0;
+			    try {
+					if(new SimpleDateFormat("dd.MM.yyyy").parse(o1).before(new SimpleDateFormat("dd.MM.yyyy").parse(o2)))
+						return -1;
+					else
+						return 1;
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				return -1000;
+			  }
+			};
+		TreeMap<String, DateValueCounter> map = new TreeMap<String, DateValueCounter>(comparator);
 		for (int i = 0; i < assessedResult.size(); i++) {
 			AssessedTimedMessage item = assessedResult.get(i);
 			if (Double.parseDouble(item.getAssessment()) != -1) {
@@ -647,5 +692,9 @@ public class EmotionMeasurementManager {
 		}
 		writer.close();
 		return true;
+	}
+
+	public ArrayList<AssessedTimedMessage> getAssessedMessages() {
+		return this.assessedResult;
 	}
 }
