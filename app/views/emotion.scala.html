@@ -10,7 +10,7 @@
 <div class="container">
 	<div class="well">
 
-		@form(routes.Application.postEmotion(), 'class -> "form-horizontal") {
+		@form(routes.Application.postEmotion(), 'class -> "form-horizontal", 'id -> "emForm") {
 		@emotionFieldset(emotionForm, preprocessing, dataAvailable, resultsAvailable) } 
 	</div>
 			@if(resultsAvailable) { @form(routes.Application.saveData("em-values"), 'class ->

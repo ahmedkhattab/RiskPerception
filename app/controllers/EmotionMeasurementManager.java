@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 import javax.swing.JOptionPane;
@@ -29,16 +30,14 @@ import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
+import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import play.libs.Json;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.gson.JsonArray;
-
 import tools.InputOptionCollection;
 import tools.DataTypes.AssessedTimedMessage;
 import tools.DataTypes.DateValueCounter;
@@ -630,7 +629,34 @@ public class EmotionMeasurementManager {
 	//	WaitCalculatingForm.hideCalculatingWindow();
 		return r.getRegressionPanel(s, yAxisName);
 	}
-
+	
+	public ObjectNode getJsonRegression(int yAxisValue){
+		TimeSeries timeSeries = new TimeSeries("Emotion value");
+		TreeMap<String, DateValueCounter> timeByDate = aggregateByDate();
+		ObjectNode result = Json.newObject();
+		ArrayNode dataArray = result.putArray("data");
+		for (DateValueCounter element : timeByDate.values()) {
+			double value = 0;
+			Day day = convertDate(element.getDate());
+			if (yAxisValue == EmotionMeasurementManager.Y_AXIS_INSTANCE_COUNTER) {
+				value = element.getCounter();
+			} else {
+				value = element.getAverage();
+			}
+			timeSeries.add(day, value);
+		}
+		String yAxisName = "Emotion Value";
+		if (yAxisValue == Y_AXIS_INSTANCE_COUNTER) {
+			yAxisName = "Instance Count";
+		}
+		XYSeries xySeries = TimeSeriesPostProcessor.convertTimeSeriesToIndex(
+				timeSeries, yAxisValue, yAxisName);
+		for (XYDataItem element : (List<XYDataItem>)xySeries.getItems()){
+			ArrayNode array = dataArray.addArray();
+			array.add(element.getXValue()).add(element.getYValue());
+		}
+		return result;
+	}
 	/**
 	 * This method creates a Panel containing the data with moving average
 	 * process.

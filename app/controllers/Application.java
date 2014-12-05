@@ -64,7 +64,7 @@ public class Application extends Controller {
 				emotionData);
 		if(dataManager.getData().size() == 0){
 			flash("error", "No data loaded");
-			return badRequest(emotion.render(formData,
+			return ok(emotion.render(formData,
 					PreprocessingChoice.makePreprocessingMap(), false, false));
 		}
 		else
@@ -77,36 +77,46 @@ public class Application extends Controller {
 	public static Result handleUpload() {
 		MultipartFormData body = request().body().asMultipartFormData();
         FilePart fileToUpload = body.getFile("file");
-        int msgColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("msg_column_pos")[0])-1;
-        int dateColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("date_column_pos")[0])-1;
+        int msgColumnPosition;
+        int dateColumnPosition;
+        try{
+        	msgColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("msg_column_pos")[0])-1;
+        }
+        catch(NumberFormatException e){
+        	msgColumnPosition = 1;
+        }
+        try{
+        	 dateColumnPosition = Integer.parseInt(body.asFormUrlEncoded().get("date_column_pos")[0])-1;
+		}
+	    catch(NumberFormatException e){
+	    	dateColumnPosition = 0;
+	    }
         boolean addAfterMsg = false;
         if(body.asFormUrlEncoded().get("add_after_msg") != null)
-        	 addAfterMsg =Boolean.parseBoolean(body.asFormUrlEncoded().get("add_after_msg")[0]);
+        	 addAfterMsg = true;
        
         String separator = body.asFormUrlEncoded().get("separator")[0];
-            if (fileToUpload != null) {
-                File tempimg = fileToUpload.getFile();
-                Path temp = tempimg.toPath();
-                Path newFile = new File("public/uploaded/"+fileToUpload.getFilename()).toPath();
-                try {
-						Files.move(temp, newFile, REPLACE_EXISTING);
-						dataManager.setDataFromFileAdaptor(dateColumnPosition, msgColumnPosition, separator, addAfterMsg, newFile.toFile());
-						response().setContentType("application/json");
-				        ObjectNode result = Json.newObject();
-				        result.put("file", newFile.getFileName().toString());
-				        result.put("loaded", dataManager.getData().size());
-				        return ok(result);
-				} catch (IOException | NumberFormatException | ParseException e) {
-					e.printStackTrace();
-				}
-            }
-            
-            flash("error", "Problem uploading file");
-            EmotionFormData emotionData = new EmotionFormData();
-    		Form<EmotionFormData> formData = Form.form(EmotionFormData.class).fill(
-    				emotionData);
-    		return badRequest(emotion.render(formData,
-					PreprocessingChoice.makePreprocessingMap(), false, false));
+        if(separator.length() == 0)
+        	separator = ";";
+        if (fileToUpload != null) {
+            File tempimg = fileToUpload.getFile();
+            Path temp = tempimg.toPath();
+            Path newFile = new File("public/uploaded/"+fileToUpload.getFilename()).toPath();
+            try {
+					Files.move(temp, newFile, REPLACE_EXISTING);
+					dataManager.setDataFromFileAdaptor(dateColumnPosition, msgColumnPosition, separator, addAfterMsg, newFile.toFile());
+					response().setContentType("application/json");
+			        ObjectNode result = Json.newObject();
+			        result.put("file", newFile.getFileName().toString());
+			        result.put("loaded", dataManager.getData().size());
+			        
+			        return ok(result);
+			} catch (IOException | NumberFormatException | ParseException e) {
+				e.printStackTrace();
+			}
+        }
+		return internalServerError();
+    
 	}
 	
 	/**
@@ -150,16 +160,23 @@ public class Application extends Controller {
 		switch(plotType){
 			case "emotion-values": 
 				return handleEmotionValuesPlot();
-			case "moving-avg":
-			break;	
-			case "regression":
-			break;
+			case "mov-avg":
+				return handleMovingAveragePlot();
+			case "val-reg":
+				return handleRegressionValuePlot();
 			default: return badRequest();
-		}
-		return TODO;
-		
-		
+		}		
 	}
+	private static Result handleRegressionValuePlot() {
+		ObjectNode result = emotionMeasurementManager.getJsonRegression(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
+		response().setContentType("application/json");
+		return ok(result);
+	}
+
+	private static Result handleMovingAveragePlot() {
+		return null;
+	}
+
 	private static Result handleEmotionValuesPlot() {
 		ObjectNode result = emotionMeasurementManager.getJsonTimeSeries(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
 		response().setContentType("application/json");
@@ -245,11 +262,13 @@ public class Application extends Controller {
 						.setDefaultEmotionTableFile(EmotionMeasurementManager.USE_WARRINER);
 				
 				String[] checkedVal = request().body().asFormUrlEncoded().get("preprocessing[]");
+				boolean fromQuery = request().body().asFormUrlEncoded().get("datasource-select")[0].equals("fromQuery");
 				ArrayList<TimedMessage> data = preprocess(checkedVal);
 				emotionMeasurementManager.assessMessages(data);
 				flash("success", "Emotion measurement for "+ emotionMeasurementManager.getAssessedMessages().size() +" message(s) completed successfully");
+				
 				return ok(emotion.render(form,
-						PreprocessingChoice.makePreprocessingMap(), false, true));
+						PreprocessingChoice.makePreprocessingMap(), fromQuery, true));
 			} catch (IOException e) {
 				e.printStackTrace();
 				return badRequest(emotion.render(form,
@@ -282,10 +301,15 @@ public class Application extends Controller {
 			QueryFormData query = formData.get();
 
 			dataManager.setTwitterMaxPages(Integer.parseInt(query.numOfSites));
+			LanguageChoice lang;
+			if(query.lang.equals(""))
+				lang = LanguageChoice.getDefaultLang();
+			else
+				lang = LanguageChoice.findLang(query.lang);
 			dataManager.collectData(query.query,
 					Utils.formatDate(query.fromDate),
 					Utils.formatDate(query.toDate),
-					LanguageChoice.findLang(query.lang).getId(), true, false,
+					lang.getId(), true, false,
 					false);
 			flash("success",
 					"Finished: Collected "

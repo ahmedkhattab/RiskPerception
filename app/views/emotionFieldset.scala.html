@@ -11,22 +11,15 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 .panel-heading .accordion-toggle.collapsed:after {
 	content: "\e080";
 }
+
+.dropdown-header {
+	background-color: rgb(172, 172, 172);
+	color: white;
+}
 </style>
 
 <!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog" style="width: 70%;">
-    <div class="modal-content">
-      <div class="modal-body">
-              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-      
-        <div id="container" style="width:100%; height:400px;"></div>
-        <br>
-      </div>
 
-    </div>
-  </div>
-</div>
 <fieldset>
 	<!-- Header -->
 	<div id="legend">
@@ -37,6 +30,10 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 		<div id="loadedMsgs" class="flash well col-sm-offset-2"
 			style="display: none;">
 			<div class="text-success"></div>
+		</div>
+		<div id="uploadError" class="flash well col-sm-offset-2"
+			style="display: none;">
+			<div class="text-danger"></div>
 		</div>
 		@if(flash.containsKey("success")) {
 		<div class="flash well col-sm-offset-2">
@@ -131,18 +128,26 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 			<!-- Uploading panel -->
 		</div>
 		
+		<div class="modal fade" id="preprocess" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		  <div class="modal-dialog" style="width: 30%;">
+		    <div class="modal-content">
+		      <div class="modal-body">
+		              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+						@checkboxes(emotionForm("preprocessing"), label = "", checkboxMap =
+						preprocessing, help = "")
+						
+		      <button type="button" class="btn btn-primary pull-right" data-dismiss="modal">Done</button>
+		      <div class="clearfix"></div>
+		      </div>
 		
-		<div class="panel panel-default col-sm-offset-2">
-			<div class="panel-heading" role="tab" id="headingOne">
-				<h4 class="panel-title">Preprocess Data</h4>
-			</div>
-			<div class="panel-body">
-				@checkboxes(emotionForm("preprocessing"), label = "", checkboxMap =
-				preprocessing, help = "")</div>
+		    </div>
+		  </div>
 		</div>
+
 
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-10">
+			<button type="button" data-toggle="modal" data-target="#preprocess" class="btn btn-default">Preprocessing...</button>
 				<button id="measure-submit" type="submit" value="Submit"
 					class="btn btn-primary">Start Measuring</button>
 			</div>
@@ -151,13 +156,15 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 		<div id="vis-panel" class="col-sm-offset-2" @if(!resultsAvailable){style="display: none;"}>
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">Visualize Results</h3>
+					<h3 class="panel-title">Visualized Results</h3>
 					<span class="pull-right"> <!-- Tabs -->
 						<ul class="nav panel-tabs">
+							<!--
 							<li class="active"><a href="#tab1" data-toggle="tab">Time
 									Course</a></li>
 							<li><a href="#tab2" data-toggle="tab">Distribution</a></li>
 							<li><a href="#tab3" data-toggle="tab">Instance Count</a></li>
+							-->
 						</ul>
 					</span>
 				</div>
@@ -166,15 +173,26 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 						<div class="tab-pane active" id="tab1">
 							<div class="btn-group">
 							  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-							   Plot <span class="caret"></span>
+							   Other plots... <span class="caret"></span>
 							  </button>
-							  <ul class="dropdown-menu" role="menu">
-							    <li><a id="em-values" href="#myModal" role="button" class="btn" data-toggle="modal">Emotion Values</a></li>
-							    <li><a id="mov-avg" href="#myModal" role="button" class="btn" data-toggle="modal">Moving Average</a></li>
-							    <li><a id="regression" href="#myModal" role="button" class="btn" data-toggle="modal">Regression</a></li>
+							  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+							  	
+							  	<li role="presentation" class="dropdown-header">Time Course</li>
+							    <li><a id="mov-avg" href="#myModal" role="menuitem" data-toggle="modal">Moving Average</a></li>
+							    <li><a id="val-reg" href="#myModal" role="menuitem" data-toggle="modal">Regression</a></li>
+							 	
+							 	<li role="presentation" class="dropdown-header">Distribution</li>
+							 	<li><a id="mesurable" href="#myModal" role="menuitem" class="btn" data-toggle="modal">Measurable/Non-measurable</a></li>
+							    <li><a id="val-dist" href="#myModal" role="menuitem" data-toggle="modal">Value Distribution</a></li>
+							 	
+							 	<li role="presentation" class="dropdown-header">Instance Count</li>
+							 	<li><a id="count-date" href="#myModal" role="menuitem" data-toggle="modal">Instance Count per date</a></li>
+							    <li><a id="count-reg" href="#myModal" role="menuitem" data-toggle="modal">Regression</a></li>
 							  </ul>
 							</div>
+							  <div id="container" style="width:100%; height:400px;"></div>
 						</div>
+						<!-- 
 						<div class="tab-pane" id="tab2">Lorem ipsum dolor sit amet,
 							consetetur sadipscing elitr, sed diam nonumy eirmod tempor
 							invidunt ut labore et dolore magna aliquyam erat, sed diam
@@ -191,7 +209,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 							invidunt ut labore et dolore magna aliquyam erat, sed diam
 							voluptua. At vero eos et accusam et justo duo dolores et ea
 							rebum. Stet clita kasd gubergren, no sea takimata sanctus est
-							Lorem ipsum dolor sit amet.</div>
+							Lorem ipsum dolor sit amet.</div> -->
 					</div>
 				</div>
 			</div>
@@ -200,8 +218,8 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 
 	</div>
 </fieldset>
-<script>
 
+<script>
 	$("#datasource-select").change(function() {
 		$("#datasource-select option:selected").each(function() {
 			if ($(this).attr("value") == "fromQuery") {
@@ -213,68 +231,11 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 			}
 		});
 	}).change();
-	function showChart(data){
-		var options = {
-				 title: {
-			            text: 'Emotion Values Timeseries'
-			        },
-			        subtitle: {
-			            text: document.ontouchstart === undefined ?
-			                    'Click and drag in the plot area to zoom in' :
-			                    'Pinch the chart to zoom in'
-			        },
-			        chart: {
-			            zoomType: 'x'
-			        },
-				plotOptions: {
-		            area: {
-		                fillColor: {
-		                    linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
-		                    stops: [
-		                        [0, Highcharts.getOptions().colors[0]],
-		                        [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-		                    ]
-		                },
-		                marker: {
-		                    radius: 2
-		                },
-		                lineWidth: 1,
-		                states: {
-		                    hover: {
-		                        lineWidth: 1
-		                    }
-		                },
-		                threshold: null
-		            }
-		        },
-		        xAxis: {
-		            type: 'datetime',
-		            minRange: 14 * 24 * 3600000 
-		        },
-		        
-		        series: [{pointInterval: 24 * 3600 * 1000, type: 'area',  name: 'Emotion measurement'}]
-		    }
-		
-		options.series[0].data = data.data;
-		console.log(options);
-		 $('#container').highcharts(options);
-	}
-   
-	 $('#em-values').click(function(e) {
-		   
-		  jsRoutes.controllers.Application.handlePlot('emotion-values').ajax({
-		        success: function(data) {
-		        	showChart(data);
-		        },
-		        error: function() {
-		          alert("Error!")
-		        }
-		      });
 
-		});
-	 $('#regression').click(function(e) {
+ 
+	 $('#val-reg').click(function(e) {
 		   
-		  jsRoutes.controllers.Application.handlePlot('regression').ajax({
+		  jsRoutes.controllers.Application.handlePlot('val-reg').ajax({
 		        success: function(data) {
 		          
 		        },
@@ -286,7 +247,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 		});
 	 $('#mov-avg').click(function(e) {
 		   
-		  jsRoutes.controllers.Application.handlePlot('moving-avg').ajax({
+		  jsRoutes.controllers.Application.handlePlot('mov-avg').ajax({
 		        success: function(data) {
 		          
 		        },
@@ -305,12 +266,14 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 					dataType : 'json',
 					add : function(e, data) {
 						$('.flash').hide();
-						var uploadButton = $('<button/>').addClass(
-								'btn btn-success').text('Processing...').prop(
+						if( $('#uploadButton').length)
+							$('#uploadButton').remove();
+						var uploadButton = $('<button id="uploadButton"/>').addClass(
+								'btn btn-success').prop(
 								'type', 'button').on(
 								'click',
 								function() {
-									$('#progress').show()
+									$('#progress').show();
 									var $this = $(this), data = $this.data();
 									$this.off('click').text('Abort')
 											.removeClass('btn-success')
@@ -339,7 +302,15 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 								progress + '%');
 
 					},
+					fail : function(e, data) {
+						$('#uploadError').delay(1000).show(1);
+						$('#uploadError > div').text(
+								"Error occured during upload, please refresh and try again ");
+						$('#progress div').removeClass('progress-bar-success').addClass('progress-bar-danger');
+						$('#progress').delay(700).hide(1);
+					},
 					done : function(e, data) {
+						console.dir(data);
 						$('#progress').delay(700).hide(1);
 						$('#files').text(data.result.file);
 						$('#loadedMsgs').delay(1000).show(1);
@@ -353,3 +324,21 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean) @import
 				$.support.fileInput ? undefined : 'disabled');
 	});
 </script>
+
+@if(resultsAvailable){
+<script>
+$(function() {
+	 showChart();
+	 var chart = $('#container').highcharts();
+	 chart.showLoading();
+	 jsRoutes.controllers.Application.handlePlot('emotion-values').ajax({
+	        success: function(data) {
+	        	chart = showTimeSeriesChart(data);
+	        },
+	        error: function() {
+	          alert("Error!");
+	        }
+	      });	
+});
+</script>
+}
