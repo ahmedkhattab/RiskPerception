@@ -1,3 +1,68 @@
+function getValuesRegressionOptions(){
+	
+	var options = {
+        chart: {
+            type: 'scatter',
+            zoomType: 'xy'
+        },
+        title: {
+            text: 'Linear Regression'
+        },
+        xAxis: {
+            title: {
+                enabled: true,
+                text: 'Index'
+            },
+            startOnTick: true,
+            endOnTick: true,
+            showLastLabel: true
+        },
+        yAxis: {
+            title: {
+                text: 'Emotion Value'
+            }
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'left',
+            verticalAlign: 'top',
+            x: 100,
+            y: 70,
+            floating: true,
+            backgroundColor: '#FFFFFF',
+            borderWidth: 1
+        },
+        plotOptions: {
+            scatter: {
+                marker: {
+                    radius: 5,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            lineColor: 'rgb(100,100,100)'
+                        }
+                    }
+                },
+                states: {
+                    hover: {
+                        marker: {
+                            enabled: false
+                        }
+                    }
+                }
+            }
+        },
+        series: [{
+            regression: true ,
+            regressionSettings: {
+                type: 'linear',
+                color:  'rgba(223, 83, 83, .9)'
+            },
+            name: 'Female',
+            color: 'rgba(223, 83, 83, .5)'
+    };
+    return options;
+}
 function getTimeSeriesOptions(){
 	var options = {
 			 title: {
@@ -57,6 +122,15 @@ function getTimeSeriesOptions(){
 function showTimeSeriesChart(data){
 	
 	var options = getTimeSeriesOptions();
+	if(data != null)
+		options.series[0].data = data.data;
+	else
+		options.series[0].data = [];
+	 	$('#container').highcharts(options);
+}
+
+function showValuesRegressionChart(data){
+	var options = getValuesRegressionOptions();
 	if(data != null)
 		options.series[0].data = data.data;
 	else
