@@ -8,7 +8,6 @@
         id="@field.id"
         name="@if(isMultiple) {@(field.name + "[]")} else {@field.name}"
         @if(isMultiple) {multiple="multiple"}>
-        @if(!isMultiple) {<option class="blank" value="">Please select a value</option>}
         @for((optionName, isSelected) <- optionMap) {
           <option id="@optionName" value="@optionName" @if(isSelected) {selected}>@optionName</option>
         }

@@ -1,10 +1,9 @@
 package models;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Represent a Grade Point Average. 
@@ -45,25 +44,20 @@ public class LanguageChoice {
    * @return A map of Language choices to boolean indicating which one is selected
    */
   public static Map<String, Boolean> makeLanguageMap() {
-    Map<String, Boolean> langMap = new TreeMap<String, Boolean>();
+    Map<String, Boolean> langMap = new HashMap<String, Boolean>();
     for (LanguageChoice lang : allLangs) {
-    	langMap.put(lang.getName(),  false);
+    	if(lang.getId().equals(getDefaultLang().getId()))
+    		langMap.put(lang.getName(),  true);
+    	else
+    		langMap.put(lang.getName(),  false);
     }
     return langMap;
   }
 
   /**
-   * @return A list of GPA ranges in sorted order.
-   */
-  public static List<String> getLangList() {
-    String[] nameArray = {"4.0", "3.0 - 3.9", "2.0 - 2.9", "1.0 - 1.9"};
-    return Arrays.asList(nameArray);
-  }
-
-  /**
-   * Return the GPA instance in the database with name 'gpa' or null if not found.
-   * @param gpa The gpa
-   * @return The GradePointAverage instance, or null.
+   * Return the LanguageChoice instance in the database with name 'langName' or null if not found.
+   * @param langName The language
+   * @return The LanguageChoice instance, or null.
    */
   public static LanguageChoice findLang(String langName) {
     for (LanguageChoice lang : allLangs) {

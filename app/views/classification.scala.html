@@ -1,0 +1,25 @@
+@(classificationForm: Form[views.formdata.ClassificationFormData], 
+  preprocessing: Map[String,Boolean],
+  dataAvailable: Boolean,
+  resultsAvailable: Boolean) 
+
+@import helper._ 
+@import controllers.routes.javascript._ 
+
+@main("classification Measurement") {
+<div class="container">
+	<div class="well">
+
+		@form(routes.Application.postClassification(), 'class -> "form-horizontal", 'id -> "emForm") {
+		@classificationFieldset(classificationForm, preprocessing, dataAvailable, resultsAvailable) } 
+	</div>
+			@if(resultsAvailable) { @form(routes.Application.saveData("em-values"), 'class ->
+			"form-horizontal") {
+			<button id="save" type="submit" value="Save" class="btn btn-primary">Save
+				Measurement Data</button>
+			} }
+</div>
+
+
+
+}

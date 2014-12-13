@@ -21,10 +21,12 @@ import tools.StringRemover;
 import tools.TextStandardizer;
 import tools.Utils;
 import tools.DataTypes.TimedMessage;
+import views.formdata.ClassificationFormData;
 import views.formdata.EmotionFormData;
 import views.formdata.QueryFormData;
 import views.html.index;
 import views.html.emotion;
+import views.html.classification;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -50,9 +52,22 @@ public class Application extends Controller {
 		return ok(index.render(formData, LanguageChoice.makeLanguageMap(),
 				false));
 	}
+	
+	/**
+	 * Returns the index page 
+	 * 
+	 * @return The page containing the search form.
+	 */
+	public static Result classification() {
+		ClassificationFormData queryData = new ClassificationFormData();
+		Form<ClassificationFormData> formData = Form.form(ClassificationFormData.class).fill(
+				queryData);
+		return ok(classification.render(formData,
+				PreprocessingChoice.makePreprocessingMap(), false, false));
+	}
 
 	/**
-	 * Returns the page where the form for emotion measurement, allowing the user
+	 * Returns the form for emotion measurement, allowing the user
 	 * to load data from file/use previously queried data, select preprocessing 
 	 * operations to perform, and visualize/download the results
 	 * 
@@ -158,27 +173,49 @@ public class Application extends Controller {
 	}
 	public static Result handlePlot(String plotType) {
 		switch(plotType){
-			case "emotion-values": 
-				return handleEmotionValuesPlot();
+			case "em-val": 
+				return handleEmotionValuesPlot(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
 			case "mov-avg":
-				return handleMovingAveragePlot();
+				return handleMovingAveragePlot(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
 			case "val-reg":
-				return handleRegressionValuePlot();
+				return handleRegressionPlot(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
+			case "count-reg":
+				return handleRegressionPlot(EmotionMeasurementManager.Y_AXIS_INSTANCE_COUNTER);
+			case "count-date":
+				return handleEmotionValuesPlot(EmotionMeasurementManager.Y_AXIS_INSTANCE_COUNTER);
+			case "measurable":
+				return handleMeasurablePlot();
+			case "val-dist":
+				return handleDistributionPlot();
 			default: return badRequest();
 		}		
 	}
-	private static Result handleRegressionValuePlot() {
-		ObjectNode result = emotionMeasurementManager.getJsonRegression(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
+	private static Result handleRegressionPlot(int axis) {
+		ObjectNode result = emotionMeasurementManager.getJsonRegression(axis);
+		response().setContentType("application/json");
+		return ok(result);
+	}
+	
+	private static Result handleDistributionPlot() {
+		ObjectNode result = emotionMeasurementManager.getJsonCategoryChart();
+		response().setContentType("application/json");
+		return ok(result);
+	}
+	
+	private static Result handleMeasurablePlot() {
+		ObjectNode result = emotionMeasurementManager.getJsonPieChart();
 		response().setContentType("application/json");
 		return ok(result);
 	}
 
-	private static Result handleMovingAveragePlot() {
-		return null;
+	private static Result handleMovingAveragePlot(int axis) {
+		ObjectNode result = emotionMeasurementManager.getJsonMovingAverage(axis, 3);
+		response().setContentType("application/json");
+		return ok(result);
 	}
 
-	private static Result handleEmotionValuesPlot() {
-		ObjectNode result = emotionMeasurementManager.getJsonTimeSeries(EmotionMeasurementManager.Y_AXIS_INSTANCE_EMOTION_VALUE);
+	private static Result handleEmotionValuesPlot(int axis) {
+		ObjectNode result = emotionMeasurementManager.getJsonTimeSeries(axis);
 		response().setContentType("application/json");
 		return ok(result);
 	}
@@ -262,7 +299,10 @@ public class Application extends Controller {
 						.setDefaultEmotionTableFile(EmotionMeasurementManager.USE_WARRINER);
 				
 				String[] checkedVal = request().body().asFormUrlEncoded().get("preprocessing[]");
-				boolean fromQuery = request().body().asFormUrlEncoded().get("datasource-select")[0].equals("fromQuery");
+		        boolean fromQuery = false;
+		        if(request().body().asFormUrlEncoded().get("datasource-select") != null)
+		        	fromQuery = request().body().asFormUrlEncoded().get("datasource-select")[0].equals("fromQuery");
+		       
 				ArrayList<TimedMessage> data = preprocess(checkedVal);
 				emotionMeasurementManager.assessMessages(data);
 				flash("success", "Emotion measurement for "+ emotionMeasurementManager.getAssessedMessages().size() +" message(s) completed successfully");
@@ -277,9 +317,11 @@ public class Application extends Controller {
 		}
 	}
 	}
-
+	public static Result postClassification() {
+		return TODO;
+	}
 	/**
-	 * Process a form submission. First we bind the HTTP POST data to an
+	 * Process the search form submission. First we bind the HTTP POST data to an
 	 * instance of QueryFormData. The binding process will invoke the
 	 * QueryFormData.validate() method. If errors are found, re-render the
 	 * page, displaying the error data. If errors not found, render the page

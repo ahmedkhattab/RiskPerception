@@ -16,6 +16,7 @@
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("highcharts.js"))"></script>
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("modules/exporting.js"))"></script>
 	<script src="@routes.Assets.at("javascripts/highcharts-regression.js")"></script>
+	<script src="@routes.Assets.at("javascripts/plotsmanager.js")"></script>
 	
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/jquery.fileupload.js"))"></script>
     <script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
@@ -39,8 +40,6 @@
           <ul class="dropdown-menu" role="menu">
             <li><a href="/emotion">Emotion Measurement</a></li>
             <li><a href="/classification">Data Classification</a></li>
-      
-          
           </ul>
         </li>
       </ul>
@@ -62,13 +61,13 @@
     $("#nav-bar a").each(function () {
         var href = $(this).attr('href');
         if(href.length != 0)
-        	{
-        if (path.substring(0, href.length) === href) {
-            $(this).closest('li').addClass('active');
-            if( $(this).closest('li').parent().closest('li').hasClass('dropdown') )
-            	 $(this).closest('li').parent().closest('li').addClass('active');
-        }
-        	}
+        {
+	        if (path.substring(0, href.length) === href) {
+	            $(this).closest('li').addClass('active');
+	            if( $(this).closest('li').parent().closest('li').hasClass('dropdown'))
+	            	 $(this).closest('li').parent().closest('li').addClass('active');
+	        }
+       	}
     });
     
     
@@ -76,28 +75,28 @@
         $("[rel='tooltip']").tooltip()
     });
     $(function() {
-    $( "#fromDate" ).datepicker({
-    defaultDate: "0",
-    changeMonth: true,
-    numberOfMonths: 1,
-    dateFormat: "dd.mm.yy",
-    maxDate: "0",
-    onClose: function( selectedDate ) {
-    	 $( "#fromDate" ).val(selectedDate);
-    $( "#toDate" ).datepicker( "option","minDate",$('#fromDate').datepicker('getDate') );
-    }
-    });
-    $( "#toDate" ).datepicker({
-    defaultDate: "0",
-    changeMonth: true,
-    numberOfMonths: 1,
-    dateFormat: "dd.mm.yy",
-    maxDate: "0",
-    onClose: function( selectedDate ) {
-    	 $( "#toDate" ).val(selectedDate);
-    $( "#fromDate" ).datepicker("option","maxDate",$('#toDate').datepicker('getDate'));
-    }
-    });
+	    $( "#fromDate" ).datepicker({
+		    defaultDate: "0",
+		    changeMonth: true,
+		    numberOfMonths: 1,
+		    dateFormat: "dd.mm.yy",
+		    maxDate: "0",
+		    onClose: function( selectedDate ) {
+		    	 $( "#fromDate" ).val(selectedDate);
+		  		 $( "#toDate" ).datepicker( "option","minDate",$('#fromDate').datepicker('getDate'));
+		    }
+	    });
+	    $( "#toDate" ).datepicker({
+		    defaultDate: "0",
+		    changeMonth: true,
+		    numberOfMonths: 1,
+		    dateFormat: "dd.mm.yy",
+		    maxDate: "0",
+		    onClose: function( selectedDate ) {
+		    	$( "#toDate" ).val(selectedDate);
+				$( "#fromDate" ).datepicker("option","maxDate",$('#toDate').datepicker('getDate'));
+		    }
+	    });
     });
     </script>
   </body>

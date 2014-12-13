@@ -10,6 +10,7 @@
   </div>
 
    <!-- Name -->
+   <div class="col-sm-8">
   @text(queryForm("query"),
         label = "Search",
         placeholder = "keywords",
@@ -22,9 +23,9 @@
           help = "")
     	
 	@text(queryForm("numOfSites"),
-        label = "Number of sites",
+        label = "Number of pages",
         placeholder = "e.g. 100",
-        help = "")
+        help = "Allows you to control the size of your result set, 1 page = 100 tweets")
        <div class="form-group">   
 	@datepicker(queryForm("fromDate"),
 		  label = "From",
@@ -35,11 +36,13 @@
 		  label = "To",
 		  placeholder = "dd.mm.yyyy",
 		  help = "")
-  </div>
+		  </div>
+<br>
   <div class="form-group">
 
-    <div class="col-sm-offset-2 col-sm-10">
+    <div class="col-sm-offset-2 col-sm-1">
       <button id="submit" type="submit" value="Submit" class="btn btn-primary">Start Collecting</button>
     </div>
+  </div>
   </div>
 </fieldset>

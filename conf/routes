@@ -5,10 +5,12 @@
 # Home page
 GET     /                           controllers.Application.index()
 GET     /collect                    controllers.Application.index()
+GET	    /classification             controllers.Application.classification()
 GET     /emotion                    controllers.Application.emotion()
 GET     /emotion/plot/:plotType 	controllers.Application.handlePlot(plotType)
 POST    /                           controllers.Application.postIndex()
 POST    /emotion                    controllers.Application.postEmotion()
+POST    /classification             controllers.Application.postClassification()
 POST    /save/:dataType             controllers.Application.saveData(dataType)
 POST    /emotion/upload             controllers.Application.handleUpload()
 

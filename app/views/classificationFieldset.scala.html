@@ -1,4 +1,4 @@
-@(emotionForm: Form[views.formdata.EmotionFormData], preprocessing:
+@(classificationForm: Form[views.formdata.ClassificationFormData], preprocessing:
 Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 @import bootstrap3._
 <style>
@@ -135,7 +135,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 						<button type="button" class="close" data-dismiss="modal">
 							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
 						</button>
-						@checkboxes(emotionForm("preprocessing"), label = "", checkboxMap
+						@checkboxes(classificationForm("preprocessing"), label = "", checkboxMap
 						= preprocessing, help = "")
 
 						<button type="button" class="btn btn-primary pull-right"

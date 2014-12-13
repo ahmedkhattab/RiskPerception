@@ -296,6 +296,26 @@ public class EmotionMeasurementManager {
 		dataset.setValue("Not Measurable", notMeasurable);
 		return dataset;
 	}
+	public ObjectNode getJsonPieChart() {
+		double measurable = 0;
+		double notMeasurable = 0;
+		for (int i = 0; i < assessedResult.size(); i++) {
+			double assassment = Double.parseDouble(assessedResult.get(i)
+					.getAssessment());
+			if (assassment == -1) {
+				notMeasurable++;
+			} else {
+				measurable++;
+			}
+		}
+		ObjectNode result = Json.newObject();
+		ArrayNode dataArray = result.putArray("data");
+		ArrayNode array = dataArray.addArray();
+		array.add("Measurable").add(measurable);
+		array = dataArray.addArray();
+		array.add("Not measurable").add(notMeasurable);
+		return result;
+	}
 
 	/**
 	 * Converts the assessed dataset to a TimeSeriesCollection and returns this
@@ -515,7 +535,39 @@ public class EmotionMeasurementManager {
 	//	WaitCalculatingForm.hideCalculatingWindow();
 		return dataset;
 	}
+	public ObjectNode getJsonCategoryChart()
+			throws NumberFormatException {
+		double minValue = 1;
+		double maxValue = 9;
+		int numberOfBars = 8;
+	//	WaitCalculatingForm.showCalculatingWindow();
+		double range = maxValue - minValue;
+		double rangePerBarExact = range * 1.0 / numberOfBars;
+		double rangePerBar = ((Math.round((rangePerBarExact * 100)) * 1.0) / 100 * 1.0);
+		ObjectNode result = Json.newObject();
+		ArrayNode dataArray = result.putArray("data");
+		int[] counter = new int[numberOfBars];
 
+		for (int i = 0; i < assessedResult.size(); i++) {
+			int category = numberOfBars - 1;
+			while (category > -1) {
+				double assessment = Double.parseDouble(assessedResult.get(i)
+						.getAssessment());
+				if (assessment > (minValue + (rangePerBar * category))) {
+					counter[category]++;
+					break;
+				} else if (assessment == minValue) {
+					counter[0]++;
+					break;
+				}
+				category--;
+			}
+		}
+		for(int i=0; i<counter.length; i++) {
+			dataArray.add(counter[i]);
+		}
+		return result;
+	}
 	/**
 	 * This method uses the given parameter to convert a array (containing the
 	 * group counts) to a DefaultCategoryDataset.
@@ -631,20 +683,10 @@ public class EmotionMeasurementManager {
 	}
 	
 	public ObjectNode getJsonRegression(int yAxisValue){
-		TimeSeries timeSeries = new TimeSeries("Emotion value");
-		TreeMap<String, DateValueCounter> timeByDate = aggregateByDate();
 		ObjectNode result = Json.newObject();
 		ArrayNode dataArray = result.putArray("data");
-		for (DateValueCounter element : timeByDate.values()) {
-			double value = 0;
-			Day day = convertDate(element.getDate());
-			if (yAxisValue == EmotionMeasurementManager.Y_AXIS_INSTANCE_COUNTER) {
-				value = element.getCounter();
-			} else {
-				value = element.getAverage();
-			}
-			timeSeries.add(day, value);
-		}
+		TimeSeriesCollection timeSeriesCollection = convertToTimeSeriesCollection(yAxisValue);
+		TimeSeries timeSeries = timeSeriesCollection.getSeries(0);
 		String yAxisName = "Emotion Value";
 		if (yAxisValue == Y_AXIS_INSTANCE_COUNTER) {
 			yAxisName = "Instance Count";
@@ -656,6 +698,22 @@ public class EmotionMeasurementManager {
 			array.add(element.getXValue()).add(element.getYValue());
 		}
 		return result;
+	}
+	
+	public ObjectNode getJsonMovingAverage(int yAxisValue, int movAvgRangeSize){
+		TreeMap<String, DateValueCounter> timeByDate = aggregateByDate();
+		ObjectNode result = Json.newObject();
+		ArrayNode dataArray = result.putArray("data");
+		TimeSeries timeSeries = convertToTimeSeriesCollection(yAxisValue)
+				.getSeries(0);
+		TimeSeries movAvgTimeSeries = TimeSeriesPostProcessor
+				.movAvgOnTimeSeries(timeSeries, movAvgRangeSize);
+		for (TimeSeriesDataItem element : (List<TimeSeriesDataItem>)movAvgTimeSeries.getItems()){
+			ArrayNode array = dataArray.addArray();
+			array.add(element.getPeriod().getMiddleMillisecond()).add(element.getValue().doubleValue());
+		}
+		return result;
+		
 	}
 	/**
 	 * This method creates a Panel containing the data with moving average

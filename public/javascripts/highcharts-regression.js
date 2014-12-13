@@ -151,7 +151,9 @@
               return 0;
         });
 
-        var string = 'y = ' + Math.round(gradient*100) / 100 + 'x + ' + Math.round(intercept*100) / 100;
+        //var string = 'y = ' + Math.round(gradient*100) / 100 + 'x + ' + Math.round(intercept*100) / 100;
+		var string = 'y = ' + gradient*100 / 100 + 'x + ' + Math.round(intercept*100) / 100;
+
         return {equation: [gradient, intercept], points: results, string: string};
     }
     
