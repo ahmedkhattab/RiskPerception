@@ -1,5 +1,6 @@
 package tools.DataTypes;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -10,8 +11,9 @@ import java.util.Date;
  * @author Christian Olenberger
  * 
  */
-public class AssessedTimedMessage {
+public class AssessedTimedMessage implements Serializable {
 
+	private static final long serialVersionUID = 4756921505470580038L;
 	// data fields
 	private String assessment;
 	private String message;

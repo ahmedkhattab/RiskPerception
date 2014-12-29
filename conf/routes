@@ -3,21 +3,25 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index()
-GET     /collect                    controllers.Application.index()
-GET	    /classification             controllers.Application.classification()
-GET     /emotion                    controllers.Application.emotion()
-GET     /emotion/plot/:plotType 	controllers.Application.handlePlot(plotType)
-POST    /                           controllers.Application.postIndex()
-POST    /emotion                    controllers.Application.postEmotion()
-POST    /classification             controllers.Application.postClassification()
-POST    /save/:dataType             controllers.Application.saveData(dataType)
-POST    /emotion/upload             controllers.Application.handleUpload()
+GET     /                           controllers.MainController.index()
+GET     /collect                    controllers.MainController.index()
+GET	    /classification             controllers.ClassificationController.classification()
+GET     /emotion                    controllers.EmotionMeasurementController.emotion()
+GET     /emotion/plot/:plotType 	controllers.EmotionMeasurementController.handlePlot(plotType)
 
-# GET     /preprocess                 controllers.Application.preprocess()
+POST    /                           controllers.MainController.postIndex()
+POST    /emotion                    controllers.EmotionMeasurementController.postEmotion()
+POST    /classification             controllers.ClassificationController.postClassification()
+POST    /save/:dataType             controllers.MainController.saveData(dataType)
+POST    /emotion/upload			    controllers.EmotionMeasurementController.handleEmotionUpload()
+POST    /classification/upload/train		controllers.ClassificationController.handleTrainingUpload()
+POST    /classification/upload/classify		controllers.ClassificationController.handleClassificationUpload()
+
+
+# GET     /preprocess                 controllers.MainController.preprocess()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /webjars/*file              controllers.WebJarAssets.at(file)
 
-GET    /javascriptRoutes    controllers.Application.javascriptRoutes
+GET    /javascriptRoutes    controllers.MainController.javascriptRoutes

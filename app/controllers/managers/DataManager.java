@@ -1,10 +1,11 @@
-package controllers;
+package controllers.managers;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,8 +28,12 @@ import controllers.dataLayer.DataContainer;
  * @author Christian Olenberger
  * 
  */
-public class DataManager {
+public class DataManager implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6899478501053723581L;
 	/**
 	 * The DataContainer the DataManager is responsible for.
 	 */
@@ -473,6 +478,7 @@ public class DataManager {
 			}
 			line = reader.readLine();
 		}
+		reader.close();
 		return result;
 	}
 

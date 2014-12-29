@@ -1,4 +1,4 @@
-package controllers;
+package controllers.managers;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,12 +33,12 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 import play.libs.Json;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import tools.InputOptionCollection;
 import tools.DataTypes.AssessedTimedMessage;
 import tools.DataTypes.DateValueCounter;
@@ -52,8 +53,9 @@ import tools.DataTypes.TimedMessage;
  * @author Christian Olenberger
  * 
  */
-public class EmotionMeasurementManager {
+public class EmotionMeasurementManager implements Serializable {
 
+	private static final long serialVersionUID = 5665586968362710256L;
 	// Defined values
 	public static final int Y_AXIS_INSTANCE_COUNTER = 0;
 	public static final int Y_AXIS_INSTANCE_EMOTION_VALUE = 1;
@@ -597,42 +599,6 @@ public class EmotionMeasurementManager {
 		}
 		return dataset;
 	}
-
-	/**
-	 * Opens dialog where the user can select a file where to save the data and
-	 * then saves the results.
-	 * 
-	 * @return TRUE if could save results else FALSE.
-	 * @throws FileNotFoundException
-	 *             Could not save file.
-	 */
-	public boolean saveResults() throws FileNotFoundException {
-		File selectedFile = InputOptionCollection.saveFile();
-		if (selectedFile == null || assessedResult == null) {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			JOptionPane.showMessageDialog(null,
-					"Problem while saving results. Check file or "
-							+ "check whether to data is assessed correcly.");
-			return false;
-		}
-		PrintWriter writer = new PrintWriter(selectedFile);
-		writer.println("Index;Date;AssessedValue;Message");
-		for (int i = 0; i < assessedResult.size(); i++) {
-			AssessedTimedMessage element = assessedResult.get(i);
-			writer.println((i + 1)
-					+ ";"
-					+ element.getDate().toString()
-					+ ";"
-					+ element.getAssessment()
-					+ ";"
-					+ element.getMessage().replaceAll("\n", "")
-							.replaceAll("" + (char) 13, ""));
-		}
-		writer.flush();
-		writer.close();
-		return true;
-	}
-	
 	
 	public File saveResultsToFile() throws FileNotFoundException {
 		File resultsFile = new File("EmotionMeasurement_results.csv");
@@ -652,34 +618,6 @@ public class EmotionMeasurementManager {
 		writer.flush();
 		writer.close();
 		return resultsFile;
-	}
-	
-	
-	/**
-	 * This method creates a Panel containing the regression chart.
-	 * 
-	 * @param yAxisValue
-	 *            Decide what to do with the data(e.g.
-	 *            EmotionMeasurementManager.Y_AXIS_INSTANCE_COUNTER).
-	 * @return A Panel with the regression chart by using the given operation.
-	 */
-	public JPanel showRegressionChart(int yAxisValue) {
-		if (assessedResult == null) {
-			return new JPanel();
-		}
-	//	WaitCalculatingForm.showCalculatingWindow();
-		TimeSeriesCollection timeSeriesCollection = convertToTimeSeriesCollection(yAxisValue);
-		TimeSeries timeSeries = timeSeriesCollection.getSeries(0);
-		String yAxisName = "Emotion Value";
-		if (yAxisValue == Y_AXIS_INSTANCE_COUNTER) {
-			yAxisName = "Instance Count";
-		}
-		XYSeries xySeries = TimeSeriesPostProcessor.convertTimeSeriesToIndex(
-				timeSeries, yAxisValue, yAxisName);
-		XYSeriesCollection s = new XYSeriesCollection(xySeries);
-		RegressionPanel r = new RegressionPanel();
-	//	WaitCalculatingForm.hideCalculatingWindow();
-		return r.getRegressionPanel(s, yAxisName);
 	}
 	
 	public ObjectNode getJsonRegression(int yAxisValue){

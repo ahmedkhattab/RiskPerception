@@ -250,7 +250,7 @@ else
 			showValuesRegressionChart(null, 'linear');
 			var chart = $('#container').highcharts();
 			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('val-reg').ajax({
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('val-reg').ajax({
 				success : function(data) {
 					$('#val-reg').data("model", data);
 					chart = showValuesRegressionChart(data, 'linear');
@@ -270,7 +270,7 @@ else
 			showMeasurablePieChart();
 			var chart = $('#container').highcharts();
 			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('measurable').ajax({
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('measurable').ajax({
 				success : function(data) {
 					$('#measurable').data("model", data);
 					chart = showMeasurablePieChart(data);
@@ -290,7 +290,7 @@ else
 			showDistributionBarChart();
 			var chart = $('#container').highcharts();
 			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('val-dist').ajax({
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('val-dist').ajax({
 				success : function(data) {
 					$('#val-dist').data("model", data);
 					chart = showDistributionBarChart(data);
@@ -310,7 +310,7 @@ else
 			showMovingAverageChart();
 			var chart = $('#container').highcharts();
 			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('mov-avg').ajax({
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('mov-avg').ajax({
 				success : function(data) {
 					$('#mov-avg').data("model", data);
 					chart = showMovingAverageChart(data);
@@ -329,7 +329,7 @@ else
 			showValuesRegressionChart(null, 'linear');
 			var chart = $('#container').highcharts();
 			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('count-reg').ajax({
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('count-reg').ajax({
 				success : function(data) {
 					$('#count-reg').data("model", data);
 					chart = showValuesRegressionChart(data, 'linear');
@@ -354,7 +354,7 @@ else
 				showMovingAverageChart();
 				var chart = $('#container').highcharts();
 				chart.showLoading();
-				jsRoutes.controllers.Application.handlePlot('count-date').ajax({
+				jsRoutes.controllers.EmotionMeasurementController.handlePlot('count-date').ajax({
 					success : function(data) {
 						$('#count-date').data("model", data);
 						chart = showTimeSeriesChart(data);
@@ -372,7 +372,7 @@ else
 		$('#fileupload')
 				.fileupload(
 						{
-							url : '@routes.Application.handleUpload()',
+							url : '@routes.EmotionMeasurementController.handleEmotionUpload()',
 							dataType : 'json',
 							add : function(e, data) {
 								$('.flash').hide();
@@ -452,7 +452,7 @@ else
 		showTimeSeriesChart();
 		 var chart = $('#container').highcharts();
 		 chart.showLoading();
-		 jsRoutes.controllers.Application.handlePlot('em-val').ajax({
+		 jsRoutes.controllers.EmotionMeasurementController.handlePlot('em-val').ajax({
 		        success: function(data) {
 		        	$('#em-val').data("model", data);
 		        	chart = showTimeSeriesChart(data);

@@ -8,6 +8,7 @@
     <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.min.css"))">
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/tabbedPanel.css")">
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/ladda.min.css")">
     <link rel="stylesheet" media="screen" href="@routes.WebJarAssets.at(WebJarAssets.locate("css/jquery.fileupload.css"))">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
 	 
@@ -17,10 +18,14 @@
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("modules/exporting.js"))"></script>
 	<script src="@routes.Assets.at("javascripts/highcharts-regression.js")"></script>
 	<script src="@routes.Assets.at("javascripts/plotsmanager.js")"></script>
+	<script src="@routes.Assets.at("javascripts/ladda.min.js")"></script>
+		<script src="@routes.Assets.at("javascripts/ladda.jquery.min.js")"></script>
+	
+	<script src="@routes.Assets.at("javascripts/spin.min.js")"></script>
 	
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/jquery.fileupload.js"))"></script>
     <script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
-    <script type="text/javascript" src='@routes.Application.javascriptRoutes()'></script>
+    <script type="text/javascript" src='@routes.MainController.javascriptRoutes()'></script>
   </head>
   <body>
   <div class="navbar navbar-inverse" role="navigation">

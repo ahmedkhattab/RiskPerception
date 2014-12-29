@@ -2,7 +2,7 @@ package tools;
 
 import javax.swing.JLabel;
 
-import controllers.DataManager;
+import controllers.managers.DataManager;
 
 /**
  * This class creates a thread which is updating a given label.

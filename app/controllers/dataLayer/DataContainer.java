@@ -1,5 +1,6 @@
 package controllers.dataLayer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import controllers.dataLayer.dataCollectors.FacebookCollector;
@@ -15,8 +16,9 @@ import tools.DataTypes.TimedMessage;
  * @author Christian Olenberger
  * 
  */
-public class DataContainer {
-
+public class DataContainer implements Serializable {
+	
+	private static final long serialVersionUID = -3882772076104682752L;
 	// Defined labels
 	private static final int STATUS_TWITTER = 0;
 	private static final int STATUS_FACEBOOK = 1;

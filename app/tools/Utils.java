@@ -1,16 +1,23 @@
 package tools;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Utils {
+	public static final String DATA_STORE = "datastore";
 
 	public static boolean isNumeric(String str)  
 	{  
 	  try  
 	  {  
-	    int d = Integer.parseInt(str);  
+		  Integer.parseInt(str);  
 	  }  
 	  catch(NumberFormatException nfe)  
 	  {  
@@ -29,5 +36,33 @@ public class Utils {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	public static boolean saveObject(String key, Serializable object){
+		try {
+			ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+                new FileOutputStream(DATA_STORE+"/"+key));
+			objectOutputStream.writeObject(object);
+			objectOutputStream.flush();
+			objectOutputStream.close();
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	public static Object loadObject(String key){
+		try {
+			ObjectInputStream objectInputStream = new ObjectInputStream(
+			        new FileInputStream(DATA_STORE+"/"+key));
+			Object object = objectInputStream.readObject();
+			objectInputStream.close();
+			return object;
+		} catch (IOException e) {
+			System.out.println(key + " File was not found");
+			return null;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		} 
 	}
 }

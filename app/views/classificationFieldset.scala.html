@@ -1,6 +1,6 @@
-@(classificationForm: Form[views.formdata.ClassificationFormData], preprocessing:
-Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
-@import bootstrap3._
+@(classificationForm: Form[views.formdata.ClassificationFormData],
+preprocessing: Map[String, Boolean], dataAvailable: Boolean,
+resultsAvailable: Boolean) @import bootstrap3._
 <style>
 .panel-heading .accordion-toggle:after {
 	font-family: 'Glyphicons Halflings';
@@ -17,6 +17,12 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 	background-color: rgb(172, 172, 172);
 	color: white;
 }
+
+.loading {
+	background: url("assets/stylesheets/ajax-loader.gif") no-repeat scroll 7px 5px transparent;
+	background-size: 23px;
+	padding-left: 40px;
+}
 </style>
 
 <!-- Modal -->
@@ -24,7 +30,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 <fieldset>
 	<!-- Header -->
 	<div id="legend">
-		<legend>Emotion Measurement</legend>
+		<legend>Data Classification</legend>
 	</div>
 
 	<div class="col-sm-8">
@@ -47,28 +53,36 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 				@flash.get("error")</div>
 		</div>
 		}
-
+		<div class="form-group">
+			<div class="col-sm-offset-1 col-sm-3">
+				<button type="button" data-toggle="modal"
+					data-target="#customize-classifier" class="btn btn-default">Customize
+					classifier..</button>
+			</div>
+			 <span class="help-block">(Optional) Allows you to upload your own training data</span>
+		</div>
 		<div class=" col-sm-offset-1">
-@if(dataAvailable){
+			@if(dataAvailable){
 			<div class="form-group">
 				<label class="col-sm-4 control-label" for="datasource-select">Select
 					datasource:</label>
 				<div class="col-sm-4">
 					<select class="form-control" id="datasource-select"
-						name="datasource-select"> 
+						name="datasource-select">
 						<option id="fromQuery" value="fromQuery">Use last query
-							data</option> 
+							data</option>
 						<option id="fromFile" value="fromFile">Load data from
 							file</option>
 					</select>
 				</div>
 			</div>
-}
+			}
+
 			<!-- Uploading Panel -->
-			<div id="uploading-panel" class="panel panel-default "
+			<div id="data-upload" class="uploading-panel panel panel-default "
 				style="display: none;">
 				<div class="panel-heading" role="tab" id="headingOne">
-					<h4 class="panel-title">Load Data From File</h4>
+					<h4 class="panel-title">Load data file to classify</h4>
 				</div>
 				<div class="panel-body">
 					<div class="form-group">
@@ -76,8 +90,8 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 							style="margin-left: 30px;"> <i
 							class="glyphicon glyphicon-plus"></i> <span>Select file...</span>
 							<!-- The file input field used as target for the file upload widget -->
-							<input id="fileupload" type="file" name="file">
-						</span> <span id="files" class="files"></span>
+							<input class="fileupload" type="file" name="file" data-url="@routes.ClassificationController.handleClassificationUpload()">
+						</span> <span class="files"></span>
 					</div>
 
 					<div class="form-group">
@@ -115,8 +129,16 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 							</label>
 						</div>
 					</div>
-					<div id='upload'></div>
-					<div id="progress" class="progress"
+					<div class="form-group">
+						<div class="checkbox" id="already_classified_div"  
+								style="margin-left: 30px;">
+							<label> <input type="checkbox" name="already_classified"
+								id="already_classified" value="true"> Data is already classified ?
+							</label>
+						</div>
+					</div>
+					<div class="upload"></div>
+					<div class="progress"
 						style="height: 14px; margin-top: 7px; display: none;">
 						<div
 							class="progress-bar progress-bar-success progress-bar-striped"></div>
@@ -125,6 +147,13 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 				</div>
 			</div>
 			<!-- Uploading panel -->
+			<div class="form-group" style="margin-left: 10px;">
+						<div class="checkbox" id="add_training_data_div">
+							<label> <input type="checkbox" name="add_training_data"
+								id="add_training_data" value="true"> Add training data to classification ?
+							</label>
+						</div>
+					</div>
 		</div>
 
 		<div class="modal fade" id="preprocess" tabindex="-1" role="dialog"
@@ -135,8 +164,8 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 						<button type="button" class="close" data-dismiss="modal">
 							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
 						</button>
-						@checkboxes(classificationForm("preprocessing"), label = "", checkboxMap
-						= preprocessing, help = "")
+						@checkboxes(classificationForm("preprocessing"), label = "",
+						checkboxMap = preprocessing, help = "")
 
 						<button type="button" class="btn btn-primary pull-right"
 							data-dismiss="modal">Done</button>
@@ -147,13 +176,58 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 			</div>
 		</div>
 
+		<div class="modal fade uploading-panel" id="customize-classifier"
+			tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+			aria-hidden="true">
+			<div class="modal-dialog" style="width: 35%;">
+				<div class="modal-content">
+				<div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			        <h5 class="modal-title">Upload Training data</h5>
+			      </div>
+					<div class="modal-body">
+						<div class="form-group">
+							<span class="btn btn-default fileinput-button btn-sm"
+								style="margin-left: 23px;"> <i
+								class="glyphicon glyphicon-plus"></i> <span>Select
+									file...</span> <!-- The file input field used as target for the file upload widget -->
+								<input class="fileupload" type="file" name="file" data-url="@routes.ClassificationController.handleTrainingUpload()">
+							</span> <span class="files"></span>
+						</div>
 
+						<div class="form-group">
+							<label class="col-sm-5 control-label">Separator symbol</label>
+							<div class="col-sm-2" style="width: 84px;">
+								<input type="text" class="form-control input-sm" id="separator"
+									name="separator" value=";" placeholder="" /> <span
+									class="help-block"></span>
+							</div>
+						</div>
+						<div class="form-group" style="margin-left: 10px;">
+							<div class="checkbox" id="add_after_msg_div">
+								<label> <input type="checkbox" name="add_after_msg"
+									id="add_after_msg" value="true"> Consider all data
+									after message as part of the message ?
+								</label>
+							</div>
+						</div>
+						<div class='upload'></div>
+						<div class="progress"
+							style="height: 14px; margin-top: 7px; display: none;">
+							<div
+								class="progress-bar progress-bar-success progress-bar-striped"></div>
+						</div>
+
+					</div>
+				</div>
+
+			</div>
+		</div>
 		<div class="form-group">
 			<div class="col-sm-offset-1 col-sm-10">
-				<button type="button" data-toggle="modal" data-target="#preprocess"
-					class="btn btn-default">Preprocessing...</button>
-				<button id="measure-submit" type="submit" value="Submit"
-					class="btn btn-primary">Start Measuring</button>
+				
+				<button id="classify-submit" type="submit" value="Submit"
+					class="btn btn-primary">Start Classification</button>
 			</div>
 		</div>
 
@@ -186,12 +260,12 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 
 									<li role="presentation" class="dropdown-header">Time
 										Course</li>
-									<li class="active"><a id="em-val" href="#myModal" role="menuitem"
-										data-toggle="modal">Emotion Values</a></li>
+									<li class="active"><a id="em-val" href="#myModal"
+										role="menuitem" data-toggle="modal">Emotion Values</a></li>
 									<li><a id="mov-avg" href="#myModal" role="menuitem"
 										data-toggle="modal">Moving Average</a></li>
 									<li><a id="val-reg" href="#myModal" role="menuitem"
-										data-toggle="modal">Regression</a></li>								
+										data-toggle="modal">Regression</a></li>
 
 									<li role="presentation" class="dropdown-header">Instance
 										Count</li>
@@ -211,27 +285,35 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 				</div>
 			</div>
 		</div>
-
-
 	</div>
 </fieldset>
 
 <script>
-if ($("#datasource-select").length){
-	$("#datasource-select").change(function() {
-		$("#datasource-select option:selected").each(function() {
-			if ($(this).attr("value") == "fromQuery") {
-				$("#uploading-panel").hide();
 
-			}
-			if ($(this).attr("value") == "fromFile") {
-				$("#uploading-panel").show();
-			}
-		});
-	}).change();
-}
-else
-	$("#uploading-panel").show();
+	if ($("#datasource-select").length) {
+		$("#datasource-select").change(function() {
+			$("#datasource-select option:selected").each(function() {
+				if ($(this).attr("value") == "fromQuery") {
+					$("#data-upload").hide();
+
+				}
+				if ($(this).attr("value") == "fromFile") {
+					$("#data-upload").show();
+				}
+			});
+		}).change();
+	} else
+		$("#data-upload").show();
+
+	$('#classify-submit').click(function(e){
+		$(this).text('Loading')
+		.removeClass(
+				'btn-primary')
+		.addClass(
+				'btn-default')
+		.addClass(
+				'loading');
+	});
 	
 	$('#plots-menu li').click(function(e) {
 		$('#plots-menu li.active').removeClass('active');
@@ -243,121 +325,17 @@ else
 
 	$('#val-reg').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
-			if($(this).data("model"))
+			if ($(this).data("model"))
 				showValuesRegressionChart($(this).data("model"), 'linear');
-			else{
-			
-			showValuesRegressionChart(null, 'linear');
-			var chart = $('#container').highcharts();
-			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('val-reg').ajax({
-				success : function(data) {
-					$('#val-reg').data("model", data);
-					chart = showValuesRegressionChart(data, 'linear');
-				},
-				error : function() {
-					alert("Error!")
-				}
-			});
-			}
-		}
-	});
-	$('#measurable').click(function(e) {
-		if (!$(this).closest('li').hasClass('active')) {
-			if($(this).data("model"))
-				showMeasurablePieChart($(this).data("model"));
-			else{
-			showMeasurablePieChart();
-			var chart = $('#container').highcharts();
-			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('measurable').ajax({
-				success : function(data) {
-					$('#measurable').data("model", data);
-					chart = showMeasurablePieChart(data);
-				},
-				error : function() {
-					alert("Error!")
-				}
-			});
-			}
-		}
-	});
-	$('#val-dist').click(function(e) {
-		if (!$(this).closest('li').hasClass('active')) {
-			if($(this).data("model"))
-				showDistributionBarChart($(this).data("model"));
-			else{
-			showDistributionBarChart();
-			var chart = $('#container').highcharts();
-			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('val-dist').ajax({
-				success : function(data) {
-					$('#val-dist').data("model", data);
-					chart = showDistributionBarChart(data);
-				},
-				error : function() {
-					alert("Error!")
-				}
-			});
-			}
-		}
-	});
-	$('#mov-avg').click(function(e) {
-		if (!$(this).closest('li').hasClass('active')) {
-			if($(this).data("model"))
-				showMovingAverageChart($(this).data("model"));
-			else{
-			showMovingAverageChart();
-			var chart = $('#container').highcharts();
-			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('mov-avg').ajax({
-				success : function(data) {
-					$('#mov-avg').data("model", data);
-					chart = showMovingAverageChart(data);
-				},
-				error : function() {
-					alert("Error!")
-				}
-			});
-		}}
-	});
-	$('#count-reg').click(function(e) {
-		if (!$(this).closest('li').hasClass('active')) {
-			if($(this).data("model"))
-				showValuesRegressionChart($(this).data("model"), 'linear');
-			else{
-			showValuesRegressionChart(null, 'linear');
-			var chart = $('#container').highcharts();
-			chart.showLoading();
-			jsRoutes.controllers.Application.handlePlot('count-reg').ajax({
-				success : function(data) {
-					$('#count-reg').data("model", data);
-					chart = showValuesRegressionChart(data, 'linear');
-				},
-				error : function() {
-					alert("Error!")
-				}
-			});
-		}
-		}
-	});
-	$('#em-val').click(function(e) {
-		if (!$(this).closest('li').hasClass('active')) {
-				showTimeSeriesChart($(this).data("model"));
-			}
-	});
-	$('#count-date').click(function(e) {
-		if (!$(this).closest('li').hasClass('active')) {
-			if($(this).data("model"))
-				showTimeSeriesChart($(this).data("model"));
-			else{
-				showMovingAverageChart();
+			else {
+
+				showValuesRegressionChart(null, 'linear');
 				var chart = $('#container').highcharts();
 				chart.showLoading();
-				jsRoutes.controllers.Application.handlePlot('count-date').ajax({
+				jsRoutes.controllers.ClassificationController.handlePlot('val-reg').ajax({
 					success : function(data) {
-						$('#count-date').data("model", data);
-						chart = showTimeSeriesChart(data);
+						$('#val-reg').data("model", data);
+						chart = showValuesRegressionChart(data, 'linear');
 					},
 					error : function() {
 						alert("Error!")
@@ -366,77 +344,188 @@ else
 			}
 		}
 	});
+	$('#measurable').click(
+			function(e) {
+				if (!$(this).closest('li').hasClass('active')) {
+					if ($(this).data("model"))
+						showMeasurablePieChart($(this).data("model"));
+					else {
+						showMeasurablePieChart();
+						var chart = $('#container').highcharts();
+						chart.showLoading();
+						jsRoutes.controllers.ClassificationController.handlePlot(
+								'measurable').ajax({
+							success : function(data) {
+								$('#measurable').data("model", data);
+								chart = showMeasurablePieChart(data);
+							},
+							error : function() {
+								alert("Error!")
+							}
+						});
+					}
+				}
+			});
+	$('#val-dist').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			if ($(this).data("model"))
+				showDistributionBarChart($(this).data("model"));
+			else {
+				showDistributionBarChart();
+				var chart = $('#container').highcharts();
+				chart.showLoading();
+				jsRoutes.controllers.ClassificationController.handlePlot('val-dist').ajax({
+					success : function(data) {
+						$('#val-dist').data("model", data);
+						chart = showDistributionBarChart(data);
+					},
+					error : function() {
+						alert("Error!")
+					}
+				});
+			}
+		}
+	});
+	$('#mov-avg').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			if ($(this).data("model"))
+				showMovingAverageChart($(this).data("model"));
+			else {
+				showMovingAverageChart();
+				var chart = $('#container').highcharts();
+				chart.showLoading();
+				jsRoutes.controllers.ClassificationController.handlePlot('mov-avg').ajax({
+					success : function(data) {
+						$('#mov-avg').data("model", data);
+						chart = showMovingAverageChart(data);
+					},
+					error : function() {
+						alert("Error!")
+					}
+				});
+			}
+		}
+	});
+	$('#count-reg').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			if ($(this).data("model"))
+				showValuesRegressionChart($(this).data("model"), 'linear');
+			else {
+				showValuesRegressionChart(null, 'linear');
+				var chart = $('#container').highcharts();
+				chart.showLoading();
+				jsRoutes.controllers.ClassificationController.handlePlot('count-reg').ajax({
+					success : function(data) {
+						$('#count-reg').data("model", data);
+						chart = showValuesRegressionChart(data, 'linear');
+					},
+					error : function() {
+						alert("Error!")
+					}
+				});
+			}
+		}
+	});
+	$('#em-val').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			showTimeSeriesChart($(this).data("model"));
+		}
+	});
+	$('#count-date').click(
+			function(e) {
+				if (!$(this).closest('li').hasClass('active')) {
+					if ($(this).data("model"))
+						showTimeSeriesChart($(this).data("model"));
+					else {
+						showMovingAverageChart();
+						var chart = $('#container').highcharts();
+						chart.showLoading();
+						jsRoutes.controllers.ClassificationController.handlePlot(
+								'count-date').ajax({
+							success : function(data) {
+								$('#count-date').data("model", data);
+								chart = showTimeSeriesChart(data);
+							},
+							error : function() {
+								alert("Error!")
+							}
+						});
+					}
+				}
+			});
 	$(function() {
 
 		// Change this to the location of your server-side upload handler:
-		$('#fileupload')
+		$('.uploading-panel .fileupload')
 				.fileupload(
 						{
-							url : '@routes.Application.handleUpload()',
+		
 							dataType : 'json',
 							add : function(e, data) {
 								$('.flash').hide();
-								if ($('#uploadButton').length)
-									$('#uploadButton').remove();
+								var parentPanel = $(this).closest(
+										'.uploading-panel');
+								if ($('.uploading-panel .uploadButton').length)
+									$('.uploading-panel .uploadButton')
+											.remove();
 								var uploadButton = $(
-										'<button id="uploadButton"/>')
+										'<button class="uploadButton"/>')
 										.addClass('btn btn-success')
 										.prop('type', 'button')
-										.on('click', function() {
-											$('#progress').show();
-											var $this = $(this), 
-											data = $this.data();
-											$this.off('click')
-												.text('Abort')
-												.removeClass('btn-success')
-												.addClass('btn-danger')
-												.on('click', function() {
-											$this.remove();
-											data.abort();
-										});
-											data.submit().always(
+										.on(
+												'click',
 												function() {
-													$this.remove();
-											});
-										});
+													var $this = $(this), parentPanel = $this
+															.closest('.uploading-panel');
+												
+													data = $this.data();
+													$this
+															.off('click')
+															.text('Loading')
+															.removeClass(
+																	'btn-success')
+															.addClass(
+																	'btn-default')
+															.addClass(
+																	'loading');
+													data.submit().always(
+															function() {
+																$this.remove();
+															});
+												});
 
 								uploadButton.text('Upload').data(data);
-								data.context = $('#upload')
+								data.context = parentPanel.find('.upload')
 										.append(uploadButton);
-								$('#progress .progress-bar').css('width',
-										0 + '%');
 								$.each(data.files, function(index, file) {
-									$('#files').text(file.name);
+									parentPanel.find('.files').text(file.name);
 								});
 							},
-							progressall : function(e, data) {
-								console.log(data.loaded);
-								var progress = parseInt(data.loaded
-										/ data.total * 100, 10);
-								$('#progress .progress-bar').css('width',
-										progress + '%');
-
-							},
 							fail : function(e, data) {
+								var parentPanel = $(this).closest(
+										'.uploading-panel');
 								$('#uploadError').delay(1000).show(1);
 								$('#uploadError > div')
 										.text(
 												"Error occured during upload, please refresh and try again ");
-								$('#progress div').removeClass(
+								/*
+								parentPanel.find('.progress div').removeClass(
 										'progress-bar-success').addClass(
 										'progress-bar-danger');
-								$('#progress').delay(700).hide(1);
+								parentPanel.find('.progress').delay(700)
+										.hide(1);*/
 							},
 							done : function(e, data) {
-								console.dir(data);
-								$('#progress').delay(700).hide(1);
-								$('#files').text(data.result.file);
-								$('#loadedMsgs').delay(1000).show(1);
-								$('#loadedMsgs > div').text(
-										"Finished loading data: Collected "
-												+ data.result.loaded
-												+ " message(s)");
-								$('#files').empty();
+								var parentPanel = $(this).closest(
+										'.uploading-panel');
+							
+								parentPanel.find('.files').text(
+										data.result.file);
+								$('#loadedMsgs').delay(600).show(1);
+								$('#customize-classifier').delay(1000).modal('hide')
+								$('#loadedMsgs > div').text('');
+								$('#loadedMsgs > div').append(data.result.message);
+								parentPanel.find('.files').empty();
 
 							}
 						}).prop('disabled', !$.support.fileInput).parent()
@@ -447,20 +536,21 @@ else
 @if(resultsAvailable){
 <script>
 	$(function() {
-		 window.location.hash = "visualization";
-		
-		showTimeSeriesChart();
-		 var chart = $('#container').highcharts();
-		 chart.showLoading();
-		 jsRoutes.controllers.Application.handlePlot('em-val').ajax({
-		        success: function(data) {
-		        	$('#em-val').data("model", data);
-		        	chart = showTimeSeriesChart(data);
-		        },
-		        error: function() {
-		          alert("Error!");
-		        }
-		      });
+		window.location.hash = "visualization";
+
+		//showTimeSeriesChart();
+		/*var chart = $('#container').highcharts();
+		chart.showLoading();
+		jsRoutes.controllers.ClassificationController.handlePlot('em-val').ajax({
+			success : function(data) {
+				$('#em-val').data("model", data);
+				chart = showTimeSeriesChart(data);
+			},
+			error : function() {
+				alert("Error!");
+			}
+		});
+		*/
 	});
 </script>
 }
