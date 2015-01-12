@@ -46,7 +46,6 @@ public class WekaClassifier implements Classifier {
         	{
         		weka.core.Instance i = utils.instanceToWeka(instance);
         		double classValue = wekaClass.classifyInstance(i);
-        		System.out.println(classValue);
                 return utils.convertClass(classValue);
         	}
         	else return null;

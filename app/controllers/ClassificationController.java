@@ -61,6 +61,7 @@ public class ClassificationController extends Controller {
 		if (body.asFormUrlEncoded().get("already_classified") != null)
 			classified = true;
 		ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
+		System.out.println("****** loaded object");
 		classificationManager.setUseBehindSeparator(addAfterMsg);
 		String separator = body.asFormUrlEncoded().get("separator")[0];
 		if (separator.length() == 0)
@@ -90,7 +91,8 @@ public class ClassificationController extends Controller {
 						ClassificationManager.SET_CLASSIFICATION_DATA, separator, classified);
 				result.put("loaded", classificationManager.classificationSetSize());
 				result.put("message", classificationManager.classificationSetSize()+" message(s) were loaded and ready for classification");
-				Utils.saveObject(session("ID")+"_class", classificationManager);
+
+				System.out.println(Utils.saveObject(session("ID")+"_class", classificationManager) ? "****saved": "******* not saved");
 				return ok(result);
 			} catch (IOException | NumberFormatException | ParseException e) {
 				e.printStackTrace();

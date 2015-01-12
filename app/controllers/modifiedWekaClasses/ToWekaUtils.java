@@ -30,7 +30,6 @@ public class ToWekaUtils implements Serializable {
     public ToWekaUtils(Dataset data) {
         classes=new Vector<Object>();
         classes.addAll(data.classes());
-        System.out.println(classes.size());
         
         FastVector att = new FastVector();
         for (int i = 0; i < data.noAttributes(); i++) {
