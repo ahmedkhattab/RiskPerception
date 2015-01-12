@@ -97,21 +97,23 @@ public class EmotionMeasurementController extends Controller {
 		if (separator.length() == 0)
 			separator = ";";
 		if (fileToUpload != null) {
-			File tempimg = fileToUpload.getFile();
+			File uploadedFile = fileToUpload.getFile();
+			/*
 			Path temp = tempimg.toPath();
 			Path newFile = new File("public/uploaded/"
 					+ fileToUpload.getFilename()).toPath();
+					*/
 			try {
-				Files.move(temp, newFile, REPLACE_EXISTING);
+				//Files.move(temp, newFile, REPLACE_EXISTING);
 				DataManager dataManager = (DataManager) Utils.loadObject(session("ID")+"_data");
 				
 				dataManager.setDataFromFileAdaptor(dateColumnPosition,
 						msgColumnPosition, separator, addAfterMsg,
-						newFile.toFile());
+						uploadedFile);
 				Utils.saveObject(session("ID")+"_data", dataManager);
 				response().setContentType("application/json");
 				ObjectNode result = Json.newObject();
-				result.put("file", newFile.getFileName().toString());
+				result.put("file", uploadedFile.toString());
 				result.put("loaded", dataManager.getData().size());
 				
 				return ok(result);

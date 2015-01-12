@@ -67,14 +67,14 @@ public class ClassificationController extends Controller {
 			separator = ";";
 		if (fileToUpload != null) {
 			File dataFile = fileToUpload.getFile();
-			Path temp = dataFile.toPath();
+			/*Path temp = dataFile.toPath();
 			Path classificationDataPath = new File("public/uploaded/"
-					+ fileToUpload.getFilename()).toPath();
+					+ fileToUpload.getFilename()).toPath();*/
 			try {
-				Files.move(temp, classificationDataPath, REPLACE_EXISTING);
+				//Files.move(temp, classificationDataPath, REPLACE_EXISTING);
 				response().setContentType("application/json");
 				ObjectNode result = Json.newObject();
-				result.put("file", classificationDataPath.getFileName().toString());
+				result.put("file", dataFile.getName());
 				if(!classificationManager.isTrained())
 				{
 					classificationManager
@@ -86,7 +86,7 @@ public class ClassificationController extends Controller {
 					System.out.println("training");
 					classificationManager.trainClassifier();
 				}
-				classificationManager.setData(classificationDataPath.toFile(), 0,
+				classificationManager.setData(dataFile, 0,
 						ClassificationManager.SET_CLASSIFICATION_DATA, separator, classified);
 				result.put("loaded", classificationManager.classificationSetSize());
 				result.put("message", classificationManager.classificationSetSize()+" message(s) were loaded and ready for classification");
@@ -113,21 +113,21 @@ public class ClassificationController extends Controller {
 			separator = ";";
 		if (fileToUpload != null) {
 			File dataFile = fileToUpload.getFile();
-			Path temp = dataFile.toPath();
+			/*Path temp = dataFile.toPath();
 			Path newFile = new File("public/uploaded/"
-					+ fileToUpload.getFilename()).toPath();
+					+ fileToUpload.getFilename()).toPath();*/
 			try {
-				Files.move(temp, newFile, REPLACE_EXISTING);
+				//Files.move(temp, newFile, REPLACE_EXISTING);
 				classificationManager
 						.setClassifier(ClassifierCollection.SVM_CLASSIFIER);
-				classificationManager.setData(newFile.toFile(), 0,
+				classificationManager.setData(dataFile, 0,
 						ClassificationManager.SET_TRAINING_DATA, separator,
 						true);
 				classificationManager.trainClassifier();
 		
 				response().setContentType("application/json");
 				ObjectNode result = Json.newObject();
-				result.put("file", newFile.getFileName().toString());
+				result.put("file", dataFile.getName());
 				result.put("loaded", classificationManager.trainingSetSize());
 				result.put("message", " Classifier trained with "+classificationManager.trainingSetSize()+" message(s)");
 				Utils.saveObject(session("ID")+"_class", classificationManager);
