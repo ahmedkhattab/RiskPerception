@@ -42,7 +42,7 @@ function getDistributionBarOptions() {
 	    };
 	return options;
 }
-function getMeasurablePieOtions() {
+function getMeasurablePieOtions(type) {
 	var options = {
 		chart : {
 			plotBackgroundColor : null,
@@ -50,7 +50,7 @@ function getMeasurablePieOtions() {
 			plotShadow : false
 		},
 		title : {
-			text : 'Measurable Vs. Not Measruable'
+			text : (type == "classes") ? 'Classes Distribution' : 'Measurable Vs. Not Measruable'
 		},
 		tooltip : {
 			pointFormat : '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -71,7 +71,7 @@ function getMeasurablePieOtions() {
 		},
 		series : [ {
 			type : 'pie',
-			name : 'Measurable Vs. Not Measruable'
+			name : (type == "classes") ? 'Classes Distribution' : 'Measurable Vs. Not Measruable'
 		} ]
 	};
 	return options;
@@ -145,10 +145,11 @@ function getValuesRegressionOptions(type) {
 	};
 	return options;
 }
-function getTimeSeriesOptions() {
+function getTimeSeriesOptions(plotType, dataType) {
+	var categories = ["neutral", "positiv", "negativ"];
 	var options = {
 		title : {
-			text : 'Emotion Values Timeseries'
+			text : (plotType == "emotion") ? 'Emotion Values Timeseries' : 'Classification Values Timeseries'
 		},
 		loading : {
 			hideDuration : 1000,
@@ -202,31 +203,42 @@ function getTimeSeriesOptions() {
 			type : 'datetime',
 			minRange : 14 * 24 * 3600000
 		},
-
+		yAxis : {
+			labels: {
+			   formatter: function () {
+				  return (plotType == "emotion" || dataType == "metric" ) ? this.value : categories[this.value];
+               }
+			}
+		},
 		series : [ {
 			type : 'area',
-			name : 'Emotion measurement'
+			name : (plotType == "emotion") ? 'Emotion measurement' : "Classification Values"
 		} ]
 	};
 	return options;
 }
-function showTimeSeriesChart(data) {
+function showTimeSeriesChart(data, plotType, dataType) {
 
-	var options = getTimeSeriesOptions();
+	var options = getTimeSeriesOptions(plotType, dataType);
 	if (data != null)
 		options.series[0].data = data.data;
 	else
 		options.series[0].data = [];
 	$('#container').highcharts(options);
 }
-function showMovingAverageChart(data) {
+function showMovingAverageChart(data, type, range) {
 
-	var options = getTimeSeriesOptions();
-	options.title.text = "Moving Average";
-	if (data != null)
+	var options = getTimeSeriesOptions(type, "metric");
+	
+	if (data != null){
 		options.series[0].data = data.data;
-	else
+		options.title.text = "Moving Average [range = " + range + "]";
+	}
+	else{
 		options.series[0].data = [];
+		options.title.text = "Moving Average";
+	}
+		
 	$('#container').highcharts(options);
 }
 function showValuesRegressionChart(data, type) {
@@ -237,15 +249,15 @@ function showValuesRegressionChart(data, type) {
 		options.series[0].data = [];
 	$('#container').highcharts(options);
 }
-function showMeasurablePieChart(data) {
-	var options = getMeasurablePieOtions();
+function showMeasurablePieChart(data, type) {
+	var options = getMeasurablePieOtions(type);
 	if (data != null)
 		options.series[0].data = data.data;
 	else
 		options.series[0].data = [];
 	$('#container').highcharts(options);
 }
-showDistributionBarChart
+
 function showDistributionBarChart(data) {
 	var options = getDistributionBarOptions();
 	if (data != null)

@@ -10,6 +10,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import play.libs.Json;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import tools.DataTypes.TimedMessage;
 
 /**
@@ -64,8 +68,9 @@ public class TagCloudBuilder {
 				count = 50;
 			// Set font size and color using the words count
 			label.setFont(label.getFont().deriveFont(count + 10.0f));
-			label.setForeground(new Color(random.nextInt(100) + count * 3,
-					random.nextInt(100) + count * 3, random.nextInt(100)
+			int randomInt = random.nextInt(100);
+			label.setForeground(new Color(randomInt + count * 3,
+					randomInt + count * 3, randomInt
 							+ count * 3));
 			containerPanel.add(label);
 			wordList.remove(i);
@@ -104,7 +109,27 @@ public class TagCloudBuilder {
 			}
 		}
 	}
+	public static String getHtmlTagCloud(ArrayList<TimedMessage> listOfWords, char tagSymbol){
+		String result = "";
+		TagCloudBuilder.countWords(TagCloudBuilder.getTaggedWords(listOfWords,
+				tagSymbol));
+		Random random = new Random();
+		// select a random taggedWord and add it to panel
+		for (int i = 0; wordList.size() != 0; i = random.nextInt(wordList
+				.size())) {			
+			int count = wordCounter.get(i);
+			if (count > 50)
+				count = 50;
+			result += getLabel(wordList.get(i), count);
+			wordList.remove(i);
+			wordCounter.remove(i);
+			if (wordList.size() == 0) {
+				break;
+			}
+		}
+		return result;
 
+	}
 	/**
 	 * This method extracts words that are tagged with a given symbol and
 	 * returns them in an ArrayList.
@@ -197,5 +222,18 @@ public class TagCloudBuilder {
 	 */
 	private static boolean isUpperCase(char currChar) {
 		return (int) currChar >= 'A' && (int) currChar <= 'Z';
+	}
+	
+	private static String getLabel(String word, int count){
+		Random random = new Random();
+		String color = "rgb(" + (random.nextInt(100) + count * 3) +","+
+				(random.nextInt(100) + count * 3) +","+ (random.nextInt(100)
+				+ count * 3)+")";
+		String Style = "style=\"margin: 4px; ";
+		Style += "font-size:"+ (count + 13)+"px; ";
+		Style += "color:" + color + ";";
+		String result = "<label ";
+		result += Style +"\">" + word + "</label>";
+		return result;
 	}
 }

@@ -4,10 +4,13 @@
 
 # Home page
 GET     /                           controllers.MainController.index()
+GET     /tagcloud         			controllers.MainController.tagcloud()
 GET     /collect                    controllers.MainController.index()
+GET     /collect/tagcloud           controllers.MainController.tagcloud()
 GET	    /classification             controllers.ClassificationController.classification()
 GET     /emotion                    controllers.EmotionMeasurementController.emotion()
-GET     /emotion/plot/:plotType 	controllers.EmotionMeasurementController.handlePlot(plotType)
+GET     /emotion/plot/:plotType 	controllers.EmotionMeasurementController.handlePlot(plotType, param: Int ?= 0)
+GET     /classification/plot/:plotType 	controllers.ClassificationController.handlePlot(plotType, param: Int ?= 0)
 
 POST    /                           controllers.MainController.postIndex()
 POST    /emotion                    controllers.EmotionMeasurementController.postEmotion()
@@ -16,6 +19,7 @@ POST    /save/:dataType             controllers.MainController.saveData(dataType
 POST    /emotion/upload			    controllers.EmotionMeasurementController.handleEmotionUpload()
 POST    /classification/upload/train		controllers.ClassificationController.handleTrainingUpload()
 POST    /classification/upload/classify		controllers.ClassificationController.handleClassificationUpload()
+
 
 
 # GET     /preprocess                 controllers.MainController.preprocess()

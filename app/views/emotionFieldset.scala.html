@@ -205,7 +205,16 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 										data-toggle="modal">Value Distribution</a></li>
 								</ul>
 							</div>
+							<div id="range-value" style="display: none; margin-top:5px;">
+								<div class="input-group" style="width: 117px; padding-left: 0px;">
+							      <input type="number" class="form-control" min="1" value="1" placeholder="Range..">
+							      <span class="input-group-btn">
+							        <button class="btn btn-default" type="button">Go!</button>
+							      </span>
+							    </div><!-- /input-group -->
+							</div>
 							<div id="container" style="width: 100%; height: 400px;"></div>
+							<br />
 						</div>
 					</div>
 				</div>
@@ -243,6 +252,7 @@ else
 
 	$('#val-reg').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
 			if($(this).data("model"))
 				showValuesRegressionChart($(this).data("model"), 'linear');
 			else{
@@ -264,6 +274,7 @@ else
 	});
 	$('#measurable').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
 			if($(this).data("model"))
 				showMeasurablePieChart($(this).data("model"));
 			else{
@@ -284,9 +295,11 @@ else
 	});
 	$('#val-dist').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
 			if($(this).data("model"))
 				showDistributionBarChart($(this).data("model"));
 			else{
+				
 			showDistributionBarChart();
 			var chart = $('#container').highcharts();
 			chart.showLoading();
@@ -304,25 +317,35 @@ else
 	});
 	$('#mov-avg').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').show();
 			if($(this).data("model"))
-				showMovingAverageChart($(this).data("model"));
+			{
+				$('#range-value input').val($('#mov-avg').data("range"));
+				showMovingAverageChart($(this).data("model"), "emotion", $('#mov-avg').data("range"));
+			}
 			else{
-			showMovingAverageChart();
-			var chart = $('#container').highcharts();
-			chart.showLoading();
-			jsRoutes.controllers.EmotionMeasurementController.handlePlot('mov-avg').ajax({
-				success : function(data) {
-					$('#mov-avg').data("model", data);
-					chart = showMovingAverageChart(data);
-				},
-				error : function() {
-					alert("Error!")
-				}
-			});
-		}}
+				showMovingAverageChart(null, "emotion", null);
+			}
+		}
+	});
+	$('#range-value button').click(function(e) {
+		var chart = $('#container').highcharts();
+		chart.showLoading();
+		jsRoutes.controllers.EmotionMeasurementController.handlePlot('mov-avg', $('#range-value input').val()).ajax({
+			success : function(data) {
+				$('#mov-avg').data("model", data);
+				$('#mov-avg').data("range",  $('#range-value input').val());
+				chart = showMovingAverageChart(data, "emotion", $('#mov-avg').data("range"));
+			},
+			error : function() {
+				alert("Error!")
+			}
+		});
 	});
 	$('#count-reg').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
+
 			if($(this).data("model"))
 				showValuesRegressionChart($(this).data("model"), 'linear');
 			else{
@@ -343,21 +366,23 @@ else
 	});
 	$('#em-val').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
-				showTimeSeriesChart($(this).data("model"));
+				$('#range-value').hide();
+				showTimeSeriesChart($(this).data("model"),"emotion");
 			}
 	});
 	$('#count-date').click(function(e) {
 		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
 			if($(this).data("model"))
-				showTimeSeriesChart($(this).data("model"));
+				showTimeSeriesChart($(this).data("model"), "emotion");
 			else{
-				showMovingAverageChart();
+				showTimeSeriesChart(null, "emotion");
 				var chart = $('#container').highcharts();
 				chart.showLoading();
 				jsRoutes.controllers.EmotionMeasurementController.handlePlot('count-date').ajax({
 					success : function(data) {
 						$('#count-date').data("model", data);
-						chart = showTimeSeriesChart(data);
+						chart = showTimeSeriesChart(data, "emotion");
 					},
 					error : function() {
 						alert("Error!")
@@ -449,13 +474,13 @@ else
 	$(function() {
 		 window.location.hash = "visualization";
 		
-		showTimeSeriesChart();
+		showTimeSeriesChart(null, "emotion");
 		 var chart = $('#container').highcharts();
 		 chart.showLoading();
 		 jsRoutes.controllers.EmotionMeasurementController.handlePlot('em-val').ajax({
 		        success: function(data) {
 		        	$('#em-val').data("model", data);
-		        	chart = showTimeSeriesChart(data);
+		        	chart = showTimeSeriesChart(data, "emotion");
 		        },
 		        error: function() {
 		          alert("Error!");

@@ -11,6 +11,7 @@ import play.cache.Cache;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
+import tools.TextStandardizer;
 import tools.Utils;
 import views.formdata.EmotionFormData;
 import views.formdata.QueryFormData;
@@ -19,6 +20,7 @@ import views.html.index;
 import controllers.managers.ClassificationManager;
 import controllers.managers.DataManager;
 import controllers.managers.EmotionMeasurementManager;
+import controllers.managers.TagCloudBuilder;
 
 /**
  * The controller for the single page of this application.
@@ -44,7 +46,14 @@ public class MainController extends Controller {
 		return ok(index.render(formData, LanguageChoice.makeLanguageMap(),
 				false));
 	}
-
+	
+	public static Result tagcloud() {
+		DataManager dataManager = (DataManager) Utils.loadObject(session("ID")+"_data");
+		String result = TagCloudBuilder.getHtmlTagCloud(TextStandardizer.standardizeTextList(dataManager.getData()),
+				'#');
+		response().setContentType("text/html");
+		return ok(result);
+	}
 	/**
 	 * handle saving of data collected to a csv and serving it to client
 	 * 
@@ -160,6 +169,8 @@ public class MainController extends Controller {
 				routes.javascript.EmotionMeasurementController.handleEmotionUpload(),
 				routes.javascript.ClassificationController.handleTrainingUpload(),
 				routes.javascript.ClassificationController.handleClassificationUpload(),
-				routes.javascript.EmotionMeasurementController.handlePlot()));
+				routes.javascript.ClassificationController.handlePlot(),
+				routes.javascript.EmotionMeasurementController.handlePlot(),
+				routes.javascript.MainController.tagcloud()));
 	}
 }

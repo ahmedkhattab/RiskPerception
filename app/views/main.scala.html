@@ -15,12 +15,13 @@
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))"></script>
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.min.js"))"></script>
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("highcharts.js"))"></script>
+	
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("modules/exporting.js"))"></script>
 	<script src="@routes.Assets.at("javascripts/highcharts-regression.js")"></script>
 	<script src="@routes.Assets.at("javascripts/plotsmanager.js")"></script>
 	<script src="@routes.Assets.at("javascripts/ladda.min.js")"></script>
-		<script src="@routes.Assets.at("javascripts/ladda.jquery.min.js")"></script>
-	
+	<script src="@routes.Assets.at("javascripts/ladda.jquery.min.js")"></script>
+
 	<script src="@routes.Assets.at("javascripts/spin.min.js")"></script>
 	
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/jquery.fileupload.js"))"></script>
@@ -55,7 +56,20 @@
 
     @content
    
-
+	<div class="modal fade" id="tagcloud-modal" tabindex="-1" role="dialog"
+			aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog" style="width: 80%;">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+					
+					</div>
+					
+				</div>
+			</div>
+		</div>
     <!-- Enable tooltips. Used primarily to validate that JQuery + Bootstrap JS are loaded. Remove this script if you don't want tooltips. -->
     <script type="text/javascript">
     
@@ -103,6 +117,19 @@
 		    }
 	    });
     });
+    $('#tagcloud').click(function(){
+    	
+    	 jsRoutes.controllers.MainController.tagcloud().ajax({
+    	        success: function(data) {
+    	        	$('#tagcloud-modal .modal-body').append(data);
+    	        	$('#tagcloud-modal').modal('show');
+    	        },
+    	        error: function() {
+    	          alert("Error!");
+    	        }
+    	      });
+    })
+
     </script>
   </body>
 </html>
