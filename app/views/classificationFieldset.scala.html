@@ -618,6 +618,8 @@ resultsAvailable: Boolean) @import bootstrap3._
 	.addClass($.support.fileInput ? undefined : 'disabled');
 });
 	$("#classify-submit").click(function (e){
+		$("#visualization").hide();
+		$("#folds").hide();
 		var $this = $(this), parentPanel = $('.uploading-panel');
 		if($this.data("stop")==1)
 			return;
