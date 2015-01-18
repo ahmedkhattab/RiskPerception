@@ -142,7 +142,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 						<button id="classify-submit" type="button" value="Submit"
 							class="btn btn-default" style="margin-left: 15px;" disabled>Start Classification</button>
 						<button id="cross-validation" type="button" value="Submit"
-							class="btn btn-info" disabled>Cross Validation</button>
+							class="btn btn-default" disabled>Cross Validation</button>
 						
 					<div class="upload"></div>
 					<div class="progress"
@@ -612,14 +612,15 @@ resultsAvailable: Boolean) @import bootstrap3._
 					$('#loadedMsgs > div').append(data.result.message);
 					parentPanel.find('.files').empty();
 					$('#cross-validation').prop("disabled", false);
+					$('#cross-validation').removeClass('btn-default')
+										.addClass('btn-success');
 
 				}
 			}).prop('disabled', !$.support.fileInput).parent()
 	.addClass($.support.fileInput ? undefined : 'disabled');
 });
 	$("#classify-submit").click(function (e){
-		$("#folds").hide();
-		$('#more-plots').show();
+		window.location.hash = "";
 		var $this = $(this), parentPanel = $('.uploading-panel');
 		if($this.data("stop")==1)
 			return;
@@ -642,6 +643,8 @@ resultsAvailable: Boolean) @import bootstrap3._
 					$('#classify-submit').prop('disabled', true);
 					window.location.hash = "visualization";
 					$("#visualization").show();
+					$("#folds").hide();
+					$('#more-plots').show();
 					showTimeSeriesChart(null, "classification", "nominal");
 					var chart = $('#container').highcharts();
 					chart.showLoading();
