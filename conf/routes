@@ -14,7 +14,6 @@ GET     /classification/plot/:plotType 	controllers.ClassificationController.han
 
 POST    /                           controllers.MainController.postIndex()
 POST    /emotion                    controllers.EmotionMeasurementController.postEmotion()
-POST    /classification             controllers.ClassificationController.postClassification()
 POST    /save/:dataType             controllers.MainController.saveData(dataType)
 POST    /emotion/upload			    controllers.EmotionMeasurementController.handleEmotionUpload()
 POST    /classification/upload/train		controllers.ClassificationController.handleTrainingUpload()

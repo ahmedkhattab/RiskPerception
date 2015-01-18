@@ -46,7 +46,7 @@ public class ClassifierCollection implements Serializable {
 	/**
 	 * Dataset used to train the classifier.
 	 */
-	private Dataset traningData;
+	private Dataset trainingData;
 
 	/**
 	 * Classifier-Object
@@ -74,11 +74,12 @@ public class ClassifierCollection implements Serializable {
 	 *            The dataset to train the classifier
 	 */
 	public ClassifierCollection(int classifierValue, Dataset trainingData) {
-		this.traningData = trainingData;
+		this.trainingData = trainingData;
 		setClassifier(classifierValue);
 		// Disable console to avoid training result print
 		ConsoleController.disableConsolePrint();
 		classifier.buildClassifier(trainingData);
+		this.trainingData = null;
 		ConsoleController.enableConsolePrint();
 	}
 
@@ -156,11 +157,10 @@ public class ClassifierCollection implements Serializable {
 	 *            The given training dataset.
 	 */
 	public void trainClassifier(Dataset trainingData) {
-		this.traningData = trainingData;
 		// Disable console to avoid training result print
-		//ConsoleController.disableConsolePrint();
-		this.classifier.buildClassifier(this.traningData);
-		//ConsoleController.enableConsolePrint();
+		ConsoleController.disableConsolePrint();
+		this.classifier.buildClassifier(trainingData);
+		ConsoleController.enableConsolePrint();
 	}
 
 	/**
@@ -301,11 +301,11 @@ public class ClassifierCollection implements Serializable {
 	 * @return A Map with class names as keys and 0 as value.
 	 */
 	private Map<Object, Integer> getResultMap() {
-		int countClasses = traningData.classes().size();
+		int countClasses = trainingData.classes().size();
 		Map<Object, Integer> resultMap = new HashMap<Object, Integer>();
 
 		for (int i = 0; i < countClasses; i++) {
-			resultMap.put(traningData.classValue(i), 0);
+			resultMap.put(trainingData.classValue(i), 0);
 		}
 
 		return resultMap;
@@ -326,9 +326,7 @@ public class ClassifierCollection implements Serializable {
 		// Used code example:
 		// http://java-ml.sourceforge.net/content/classification-cross-validation
 		if (signedData.size() < folds && folds >= 0) {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			JOptionPane.showMessageDialog(null, "Not enough data.");
-			return new HashMap<Object, PerformanceMeasure>();
+			return null;
 		}
 		int usedFolds = folds;
 		if (usedFolds < 0) {

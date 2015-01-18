@@ -1,5 +1,6 @@
 @(classificationForm: Form[views.formdata.ClassificationFormData], 
   preprocessing: Map[String,Boolean],
+  classifiers: Map[String,Boolean],
   dataAvailable: Boolean,
   resultsAvailable: Boolean) 
 
@@ -10,8 +11,8 @@
 <div class="container">
 	<div class="well">
 
-		@form(routes.ClassificationController.postClassification(), 'class -> "form-horizontal", 'id -> "classificationForm") {
-		@classificationFieldset(classificationForm, preprocessing, dataAvailable, resultsAvailable) } 
+		
+		@classificationFieldset(classificationForm, preprocessing, classifiers, dataAvailable, resultsAvailable)
 	</div>
 			@if(resultsAvailable) { @form(routes.MainController.saveData("classified-data"), 'class ->
 			"form-horizontal") {

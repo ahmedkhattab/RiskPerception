@@ -31,6 +31,7 @@ public class WekaClassifier implements Classifier {
     public void buildClassifier(Dataset data) {
         utils = new ToWekaUtils(data);
         Instances inst = utils.getDataset();
+        //utils.reset();
         try {
             wekaClass.buildClassifier(inst);
         } catch (Exception e) {

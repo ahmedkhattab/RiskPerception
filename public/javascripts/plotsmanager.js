@@ -145,6 +145,116 @@ function getValuesRegressionOptions(type) {
 	};
 	return options;
 }
+function getClassificationTimeseriesOptions() {
+	var categories = ["negativ", "neutral", "positiv"];
+	var options = {
+		chart : {
+			type : 'scatter',
+			zoomType : 'xy'
+		},
+		title : {
+			text : 'Classification Values Timeseries'
+		},
+		loading : {
+			hideDuration : 1000,
+			showDuration : 1000,
+			labelStyle : {
+				color : 'white',
+				padding : '55px 0 0 0',
+				background : 'url("assets/stylesheets/ajax-loader.gif") no-repeat scroll 11px 14px transparent',
+				left : '-2%',
+				color : 'black'
+
+			}
+		},
+		xAxis : {
+			type : 'datetime',
+			minRange : 14 * 24 * 3600000,
+			dateTimeLabelFormats: {
+				day: '%e',
+				month: '%b',
+				year: '%Y'
+            }
+		},
+		yAxis : {
+			labels: {
+			   formatter: function () {
+				  return categories[this.value];
+               }
+			}
+		},
+		plotOptions : {
+			scatter : {
+				marker : {
+					radius : 5,
+					states : {
+						hover : {
+							enabled : true,
+							lineColor : 'rgb(100,100,100)'
+						}
+					}
+				},
+				states : {
+					hover : {
+						marker : {
+							enabled : false
+						}
+					}
+				}
+			}
+		},
+		series : [ {
+			
+			name : 'Classification Values',
+			color : 'rgba(223, 83, 83, .5)'
+		} ]
+	};
+	return options;
+}
+function getCrossValidationOptions(folds) {
+	var options = {
+		title : {
+			text : 'Cross-Validation Results'
+		},
+		loading : {
+			hideDuration : 1000,
+			showDuration : 1000,
+			labelStyle : {
+				color : 'white',
+				padding : '55px 0 0 0',
+				background : 'url("assets/stylesheets/ajax-loader.gif") no-repeat scroll 11px 14px transparent',
+				left : '-2%',
+				color : 'black'
+
+			}
+		},
+
+		subtitle : {
+			text : document.ontouchstart === undefined ? 'Click and drag in the plot area to zoom in'
+					: 'Pinch the chart to zoom in'
+		},
+		chart: {
+            type: 'column'
+        },
+		plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
+		xAxis : {
+			categories : []
+		},
+		yAxis: {
+            min: 0,
+            title: {
+                text: 'Value'
+            }
+        },
+        series: []
+	};
+	return options;
+}
 function getTimeSeriesOptions(plotType, dataType) {
 	var categories = ["neutral", "positiv", "negativ"];
 	var options = {
@@ -217,9 +327,19 @@ function getTimeSeriesOptions(plotType, dataType) {
 	};
 	return options;
 }
+function showCrossValidationChart(data, folds) {
+	var options = getCrossValidationOptions(data, folds);
+	if (data != null){
+		options.series = data.data;
+		options.xAxis.categories = data.classes;
+		options.title.text = options.title.text + ' (' + folds + ' folds)';
+	}
+		
+	$('#container').highcharts(options);
+}
 function showTimeSeriesChart(data, plotType, dataType) {
 
-	var options = getTimeSeriesOptions(plotType, dataType);
+	var options = (plotType == "emotion" || dataType == "metric") ? getTimeSeriesOptions(plotType, dataType) : getClassificationTimeseriesOptions();
 	if (data != null)
 		options.series[0].data = data.data;
 	else

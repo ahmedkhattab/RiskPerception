@@ -1,5 +1,5 @@
 @(classificationForm: Form[views.formdata.ClassificationFormData],
-preprocessing: Map[String, Boolean], dataAvailable: Boolean,
+preprocessing: Map[String, Boolean], classifiers: Map[String, Boolean], dataAvailable: Boolean,
 resultsAvailable: Boolean) @import bootstrap3._
 <style>
 .panel-heading .accordion-toggle:after {
@@ -27,6 +27,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 
 <!-- Modal -->
 
+<form class="form-horizontal">
 <fieldset>
 	<!-- Header -->
 	<div id="legend">
@@ -136,7 +137,13 @@ resultsAvailable: Boolean) @import bootstrap3._
 								id="already_classified" value="true"> Data is already classified ?
 							</label>
 						</div>
-					</div>
+					</div>			
+											
+						<button id="classify-submit" type="button" value="Submit"
+							class="btn btn-default" style="margin-left: 15px;" disabled>Start Classification</button>
+						<button id="cross-validation" type="button" value="Submit"
+							class="btn btn-default" disabled>Cross Validation</button>
+						
 					<div class="upload"></div>
 					<div class="progress"
 						style="height: 14px; margin-top: 7px; display: none;">
@@ -147,13 +154,6 @@ resultsAvailable: Boolean) @import bootstrap3._
 				</div>
 			</div>
 			<!-- Uploading panel -->
-			<div class="form-group" style="margin-left: 10px;">
-						<div class="checkbox" id="add_training_data_div">
-							<label> <input type="checkbox" name="add_training_data"
-								id="add_training_data" value="true"> Add training data to classification ?
-							</label>
-						</div>
-					</div>
 		</div>
 
 		<div class="modal fade" id="preprocess" tabindex="-1" role="dialog"
@@ -183,30 +183,35 @@ resultsAvailable: Boolean) @import bootstrap3._
 				<div class="modal-content">
 				<div class="modal-header">
 			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			        <h5 class="modal-title">Upload Training data</h5>
+			        <h5 class="modal-title">Train Your Classifer</h5>
 			      </div>
 					<div class="modal-body">
 						<div class="form-group">
 							<span class="btn btn-default fileinput-button btn-sm"
 								style="margin-left: 23px;"> <i
 								class="glyphicon glyphicon-plus"></i> <span>Select
-									file...</span> <!-- The file input field used as target for the file upload widget -->
+									training data file...</span> <!-- The file input field used as target for the file upload widget -->
 								<input class="fileupload" type="file" name="file" data-url="@routes.ClassificationController.handleTrainingUpload()">
 							</span> <span class="files"></span>
 						</div>
-
+						 @select(classificationForm("classifiers"),
+					          label = "Select Classifier",
+					          optionMap = classifiers,
+					          isMultiple = false,
+					          help = "",
+					          popup = true)
 						<div class="form-group">
 							<label class="col-sm-5 control-label">Separator symbol</label>
 							<div class="col-sm-2" style="width: 84px;">
-								<input type="text" class="form-control input-sm" id="separator"
-									name="separator" value=";" placeholder="" /> <span
+								<input type="text" class="form-control input-sm"
+									name="training_separator" value=";" placeholder="" /> <span
 									class="help-block"></span>
 							</div>
 						</div>
 						<div class="form-group" style="margin-left: 10px;">
 							<div class="checkbox" id="add_after_msg_div">
-								<label> <input type="checkbox" name="add_after_msg"
-									id="add_after_msg" value="true"> Consider all data
+								<label> <input type="checkbox" name="training_add_after_msg"
+									 value="true"> Consider all data
 									after message as part of the message ?
 								</label>
 							</div>
@@ -223,16 +228,10 @@ resultsAvailable: Boolean) @import bootstrap3._
 
 			</div>
 		</div>
-		<div class="form-group">
-			<div class="col-sm-offset-1 col-sm-10">
-				
-				<button id="classify-submit" type="submit" value="Submit"
-					class="btn btn-primary">Start Classification</button>
-			</div>
-		</div>
+		
 
 		<div id="visualization" class="col-sm-offset-1"
-			@if(!resultsAvailable){style="display: none;"}>
+			style="display: none;">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
 					<h3 class="panel-title">Visualized Results</h3>
@@ -250,7 +249,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 				<div class="panel-body">
 					<div class="tab-content">
 						<div class="tab-pane active" id="tab1">
-							<div class="btn-group">
+							<div id="more-plots" class="btn-group">
 								<button type="button" class="btn btn-default dropdown-toggle"
 									data-toggle="dropdown" aria-expanded="false">
 									More plots... <span class="caret"></span>
@@ -277,6 +276,15 @@ resultsAvailable: Boolean) @import bootstrap3._
 										data-toggle="modal">Classes Distribution</a></li>
 								</ul>
 							</div>
+							<div id="folds" style="display: none;">
+							<label class="control-label">Enter the number of folds:</label>
+								<div class="input-group" style="width: 117px; padding-left: 0px;">
+							      <input type="number" class="form-control" min="2" max="10" value="2">
+							      <span class="input-group-btn">
+							        <button class="btn btn-default" type="button">Go!</button>
+							      </span>
+							    </div><!-- /input-group -->
+							</div>
 							<div id="range-value" style="display: none; margin-top:5px;">
 								<div class="input-group" style="width: 117px; padding-left: 0px;">
 							      <input type="number" class="form-control" min="1" value="1" placeholder="Range..">
@@ -293,7 +301,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 		</div>
 	</div>
 </fieldset>
-
+</form>
 <script>
 
 	if ($("#datasource-select").length) {
@@ -452,6 +460,38 @@ resultsAvailable: Boolean) @import bootstrap3._
 					}
 				}
 			});
+	
+	$('#cross-validation').click(
+			function(e) {
+				if (!$(this).closest('li').hasClass('active')) {
+					$('#folds').show();
+					$('#more-plots').hide();
+					window.location.hash = "visualization";
+					$("#visualization").show();
+					if($(this).data("model"))
+					{
+						$('#folds input').val($('#cross-validation').data("folds"));
+						showCrossValidationChart($(this).data("model"), $('#cross-validation').data("folds"));
+					}
+					else{
+						showCrossValidationChart();
+					}
+				}
+			});
+	$('#folds button').click(function(e) {
+		var chart = $('#container').highcharts();
+		chart.showLoading();
+		jsRoutes.controllers.ClassificationController.handlePlot('cross-validation', $('#folds input').val()).ajax({
+			success : function(data) {
+				$('#cross-validation').data("model", data);
+				$('#cross-validation').data("folds",  $('#folds input').val());
+				chart = showCrossValidationChart(data, $('#cross-validation').data("folds"));
+			},
+			error : function() {
+				alert("Error!")
+			}
+		});
+	});
 	$(function() {
 
 		// Change this to the location of your server-side upload handler:
@@ -464,38 +504,11 @@ resultsAvailable: Boolean) @import bootstrap3._
 								$('.flash').hide();
 								var parentPanel = $(this).closest(
 										'.uploading-panel');
-								if ($('.uploading-panel .uploadButton').length)
-									$('.uploading-panel .uploadButton')
-											.remove();
-								var uploadButton = $(
-										'<button class="uploadButton"/>')
-										.addClass('btn btn-success')
-										.prop('type', 'button')
-										.on(
-												'click',
-												function() {
-													var $this = $(this), parentPanel = $this
-															.closest('.uploading-panel');
-												
-													data = $this.data();
-													$this
-															.off('click')
-															.text('Loading')
-															.removeClass(
-																	'btn-success')
-															.addClass(
-																	'btn-default')
-															.addClass(
-																	'loading');
-													data.submit().always(
-															function() {
-																$this.remove();
-															});
-												});
-
-								uploadButton.text('Upload').data(data);
-								data.context = parentPanel.find('.upload')
-										.append(uploadButton);
+								$('#classify-submit').removeClass('btn-default')
+								$('#classify-submit').addClass("btn-primary");
+								$('#classify-submit').prop('disabled', false);
+								$('#classify-submit').data(data);
+								data.context = parentPanel.find('.upload');
 								$.each(data.files, function(index, file) {
 									parentPanel.find('.files').text(file.name);
 								});
@@ -521,35 +534,125 @@ resultsAvailable: Boolean) @import bootstrap3._
 								parentPanel.find('.files').text(
 										data.result.file);
 								$('#loadedMsgs').delay(600).show(1);
-								$('#customize-classifier').delay(1000).modal('hide')
 								$('#loadedMsgs > div').text('');
 								$('#loadedMsgs > div').append(data.result.message);
 								parentPanel.find('.files').empty();
-
 							}
 						}).prop('disabled', !$.support.fileInput).parent()
 				.addClass($.support.fileInput ? undefined : 'disabled');
 	});
-</script>
-
-@if(resultsAvailable){
-<script>
 	$(function() {
-		window.location.hash = "visualization";
+	$('#customize-classifier .fileupload')
+	.fileupload(
+			{
+				dataType : 'json',
+				add : function(e, data) {
+					$('.flash').hide();
+					var parentPanel = $(this).closest(
+							'.uploading-panel');
+					if ($('.uploading-panel .uploadButton').length)
+						$('.uploading-panel .uploadButton')
+								.remove();
+					var uploadButton = $(
+							'<button class="uploadButton"/>')
+							.addClass('btn btn-success')
+							.prop('type', 'button')
+							.on(
+									'click',
+									function() {
+										var $this = $(this), parentPanel = $this
+												.closest('.uploading-panel');
+									
+										data = $this.data();
+										$this
+												.off('click')
+												.text('Loading')
+												.removeClass(
+														'btn-success')
+												.addClass(
+														'btn-default')
+												.addClass(
+														'loading');
+										data.submit().always(
+												function() {
+													$this.remove();
+												});
+									});
 
-		showTimeSeriesChart(null, "classification", "nominal");
-		var chart = $('#container').highcharts();
-		chart.showLoading();
-		jsRoutes.controllers.ClassificationController.handlePlot('class-nominal').ajax({
-			success : function(data) {
-				$('#class-nominal').data("model", data);
-				chart = showTimeSeriesChart(data, "classification", "nominal");
-			},
-			error : function() {
-				alert("Error!");
-			}
-		});
-		
+					uploadButton.text('Upload').data(data);
+					data.context = parentPanel.find('.upload')
+							.append(uploadButton);
+					$.each(data.files, function(index, file) {
+						parentPanel.find('.files').text(file.name);
+					});
+				},
+				fail : function(e, data) {
+					var parentPanel = $(this).closest(
+							'.uploading-panel');
+					$('#uploadError').delay(1000).show(1);
+					$('#uploadError > div')
+							.text(
+									"Error occured during upload, please refresh and try again ");
+					/*
+					parentPanel.find('.progress div').removeClass(
+							'progress-bar-success').addClass(
+							'progress-bar-danger');
+					parentPanel.find('.progress').delay(700)
+							.hide(1);*/
+				},
+				done : function(e, data) {
+					var parentPanel = $(this).closest(
+							'.uploading-panel');
+				
+					parentPanel.find('.files').text(
+							data.result.file);
+					$('#loadedMsgs').delay(600).show(1);
+					$('#customize-classifier').delay(1000).modal('hide')
+					$('#loadedMsgs > div').text('');
+					$('#loadedMsgs > div').append(data.result.message);
+					parentPanel.find('.files').empty();
+					$('#cross-validation').prop("disabled", false);
+
+				}
+			}).prop('disabled', !$.support.fileInput).parent()
+	.addClass($.support.fileInput ? undefined : 'disabled');
+});
+	$("#classify-submit").click(function (e){
+		var $this = $(this), parentPanel = $('.uploading-panel');
+		if($this.data("stop")==1)
+			return;
+		var data = $this.data();
+		$this.data("stop",1);
+		$this	.text('Loading')
+				.removeClass(
+						'btn-primary')
+				.addClass(
+						'btn-default')
+				.addClass(
+						'loading');
+		data.submit().always(
+				function() {
+					$this.text('Start Classification')
+					.removeClass(
+							'loading')
+					.addClass(
+							'btn-primary');
+					$('#classify-submit').prop('disabled', true);
+					window.location.hash = "visualization";
+					$("#visualization").show();
+					showTimeSeriesChart(null, "classification", "nominal");
+					var chart = $('#container').highcharts();
+					chart.showLoading();
+					jsRoutes.controllers.ClassificationController.handlePlot('class-nominal').ajax({
+						success : function(data) {
+							$('#class-nominal').data("model", data);
+							chart = showTimeSeriesChart(data, "classification", "nominal");
+						},
+						error : function() {
+							alert("Error!");
+						}
+					});
+					$this.data("stop",0);
+				});
 	});
 </script>
-}

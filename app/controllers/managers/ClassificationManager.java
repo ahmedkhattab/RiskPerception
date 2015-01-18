@@ -88,13 +88,14 @@ public class ClassificationManager implements Serializable{
 	// The date for the classification/classified instance. Works because the
 	// datasets are not sorted or changed so the index of the instance is
 	// matching
-	private ArrayList<Date> datesByIndexFromClassification;
-	private ArrayList<Date> datesByIndexFromTrain;
+	//private ArrayList<Date> datesByIndexFromClassification;
+	//private ArrayList<Date> datesByIndexFromTrain;
 	private ArrayList<Date> datesByIndex;
 	private Dataset classificationData;
 	private Dataset classifiedData;
 	private ArrayList<String> trainedWordList;
 	private boolean useBehindSeparator = false;
+	private String dummyClass;
 	// If the results are save you need to calculate it only once.
 	private Map<Object, PerformanceMeasure> crossValidationResult;
 
@@ -118,6 +119,7 @@ public class ClassificationManager implements Serializable{
 		} else if (fileTarget == ClassificationManager.SET_CLASSIFICATION_DATA) {
 			this.classificationData = FileHandler.loadSparseDataset(file, 0,
 					" ", ":");
+			System.out.println(this.classificationData.size());
 		}
 	}
 
@@ -150,6 +152,7 @@ public class ClassificationManager implements Serializable{
 		if (this.classifier != null && this.trainingData != null) {
 			//WaitCalculatingForm.showCalculatingWindow();
 			this.classifier.trainClassifier(trainingData);
+			this.dummyClass = trainingData.classes().first().toString();
 			//WaitCalculatingForm.hideCalculatingWindow();
 			hasTrainedClassifier = true;
 			return true;
@@ -185,38 +188,6 @@ public class ClassificationManager implements Serializable{
 	 * @throws ParseException
 	 *             Problem while parsing date.
 	 */
-	public boolean setData(File file, int convertOperation, int fileTarget)
-			throws IOException, ParseException {
-		switch (convertOperation) {
-		case 0:
-			String separator = ";";
-			String separatorString = InputOptionCollection.getUserInput(
-					"Add the symbol which is used as the separator:",
-					"Separator Symbol", ";");
-			if (separatorString != null) {
-				separator = separatorString.substring(0, 1);
-			} else {
-				// Used code example: http://java-tutorial.org/joptionpane.html
-				JOptionPane.showMessageDialog(null,
-						"Wrong input. Could not set data.");
-				return false;
-			}
-			convertTextFileIntoSparse(file, separator, fileTarget, false);
-			break;
-		case 1:
-			convertAndSetData(file, fileTarget);
-			break;
-		case 2:
-			setSparseData(file, fileTarget);
-			break;
-		default:
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			JOptionPane.showMessageDialog(null,
-					"Wrong input. Could not set data.");
-		}
-		return true;
-	}
-	
 	public boolean setData(File file, int convertOperation, int fileTarget,
 			String separator, boolean classified)throws IOException, ParseException {
 		switch (convertOperation) {
@@ -352,16 +323,16 @@ public class ClassificationManager implements Serializable{
 			return false;
 		}
 		Dataset dataToClassify = new DefaultDataset();
-		datesByIndex = new ArrayList<Date>();
+		//datesByIndex = new ArrayList<Date>();
 		dataToClassify.addAll(classificationData);
-		if (datesByIndexFromClassification != null) {
-			datesByIndex.addAll(datesByIndexFromClassification);
-		}
+		//if (datesByIndexFromClassification != null) {
+			//datesByIndex.addAll(datesByIndexFromClassification);
+		//}
 		if (useTrainingData) {
 			dataToClassify.addAll(trainingData);
-			if (datesByIndexFromTrain != null) {
-				datesByIndex.addAll(datesByIndexFromTrain);
-			}
+		//	if (datesByIndexFromTrain != null) {
+			//	datesByIndex.addAll(datesByIndexFromTrain);
+		//	}
 		}
 		this.classifiedData = classifier.classifyDataset(dataToClassify);
 		return true;
@@ -377,26 +348,17 @@ public class ClassificationManager implements Serializable{
 	 * @return TRUE if all requirements are fulfilled.
 	 */
 	private boolean checkForRequirementsToClassify(boolean useTrainingData) {
-		if (classifier == null) {// Used code example:
-			// http://java-tutorial.org/joptionpane.html
-			//JOptionPane.showMessageDialog(null,
-				//	"No classifier found. Select classifier first.");
+		if (classifier == null) {
+			System.out.println("Classifier missing");
 			return false;
 		} else if (!hasTrainedClassifier) {
-			// http://java-tutorial.org/joptionpane.html
-			//JOptionPane.showMessageDialog(null,
-				//	"No trained classifier found. Train classifier first.");
+			System.out.println("Classifier not trained");
 			return false;
 		} else if (classificationData == null) {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			//JOptionPane
-					//.showMessageDialog(null,
-						//	"No data for classification found. Set data for classification first.");
+			System.out.println("no classification data");
 			return false;
 		} else if (useTrainingData && trainingData == null) {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			//JOptionPane.showMessageDialog(null,
-				//	"No training data found. Set training data first.");
+			System.out.println("training data missing");
 			return false;
 		}
 		return true;
@@ -409,152 +371,6 @@ public class ClassificationManager implements Serializable{
 	 */
 	public Classifier getClassifier() {
 		return classifier.getClassifier();
-	}
-
-	/**
-	 * This method opens a dialog where to save the classifier and then it saves
-	 * the classifier and asks whether to save the wordList.
-	 * 
-	 * @throws IOException
-	 */
-	public boolean saveClassifier() throws IOException {
-		// create new file (used code example:
-		// http://docs.oracle.com/javase/tutorial/uiswing/components/filechooser.html)
-		File selectedFile = InputOptionCollection.saveFile();
-		if (selectedFile == null || classifier == null) {
-			return false;
-		}
-		saveClassifierObject(selectedFile.getAbsolutePath());
-		if (InputOptionCollection
-				.getYesNoSelection(
-						"Do you want to save the wordList for classifing text messages.",
-						"Save wordList")) {
-			saveWordList(selectedFile.getAbsolutePath() + ".model");
-
-		}
-		// Used code example: http://java-tutorial.org/joptionpane.html
-		JOptionPane.showMessageDialog(null, "Saved file(s) successfully.");
-		return true;
-	}
-
-	/**
-	 * This method saves the current wordList if it exists.
-	 * 
-	 * @param filePath
-	 *            The path where the wordList should be saved.
-	 * @throws IOException
-	 *             roblem while writing file.
-	 */
-	private void saveWordList(String filePath) throws IOException {
-		if (trainedWordList != null) {
-			// Save The wordList
-			File fileWordList = new File(filePath + ".wordLists");
-			// Used code example:
-			// http://beginwithjava.blogspot.de/2011/04/java-file-save-and-file-load-objects.html
-			FileOutputStream saveFileWordList = new FileOutputStream(
-					fileWordList);
-			ObjectOutputStream saveWordList = new ObjectOutputStream(
-					saveFileWordList);
-			saveWordList.writeObject(this.trainedWordList);
-			saveWordList.close();
-		} else {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			JOptionPane.showMessageDialog(null,
-					"Could not save wordList. No wordList existing.");
-		}
-	}
-
-	/**
-	 * This method saves the current classifier.
-	 * 
-	 * @param filePath
-	 *            The path where the classifier should be saved.
-	 * @throws IOException
-	 *             Problem while writing file.
-	 */
-	private void saveClassifierObject(String filePath) throws IOException {
-		// Save The Classifier
-		File fileClassifier = new File(filePath);
-		// Used code example:
-		// http://beginwithjava.blogspot.de/2011/04/java-file-save-and-file-load-objects.html
-		FileOutputStream saveFile = new FileOutputStream(fileClassifier);
-		ObjectOutputStream save = new ObjectOutputStream(saveFile);
-		save.writeObject(getClassifier());
-		save.close();
-	}
-
-	/**
-	 * This method opens a dialog where to save the classifier and then it saves
-	 * the classifier.
-	 * 
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 */
-	public boolean loadClassifier() throws IOException, ClassNotFoundException {
-		File selectedFile = InputOptionCollection.selectFile();
-		if (selectedFile == null) {
-			return false;
-		}
-		loadClassifierFile(selectedFile.getAbsolutePath());
-		if (InputOptionCollection.getYesNoSelection(
-				"Do you want to load a wordList for the classifier?",
-				"Load wordList")) {
-			File selectedFileWordList = InputOptionCollection.selectFile();
-			if (selectedFileWordList == null) {
-				return false;
-			}
-			loadWordListFile(selectedFileWordList.getAbsolutePath());
-		}
-		// Used code example: http://java-tutorial.org/joptionpane.html
-		JOptionPane.showMessageDialog(null, "Loaded file(s) successfully.");
-		return true;
-	}
-
-	/**
-	 * This method gets a file path, loads the file and uses it as the wordList
-	 * for feature vector creation.
-	 * 
-	 * @param filePath
-	 *            Path to the file containing the wordList.
-	 * @throws IOException
-	 *             Problem while reading the file.
-	 * @throws ClassNotFoundException
-	 *             Problem while using wordList.
-	 */
-	public void loadWordListFile(String filePath) throws IOException,
-			ClassNotFoundException {
-		// Used code example:
-		// http://beginwithjava.blogspot.de/2011/04/java-file-save-and-file-load-objects.html
-		FileInputStream loadFile = new FileInputStream(filePath);
-		ObjectInputStream load = new ObjectInputStream(loadFile);
-		Object obj = load.readObject();
-		ArrayList<String> wordList = (ArrayList<String>) obj;
-		this.trainedWordList = wordList;
-		load.close();
-	}
-
-	/**
-	 * This method gets a path to a file containing a classifier. It will load
-	 * the classifier and set it as the current classifier.
-	 * 
-	 * @param filePath
-	 *            Path to the classifier file.
-	 * @throws IOException
-	 *             Problem while reading file.
-	 * @throws ClassNotFoundException
-	 *             Problem while using classifier.
-	 */
-	public void loadClassifierFile(String filePath) throws IOException,
-			ClassNotFoundException {
-		// Used code example:
-		// http://beginwithjava.blogspot.de/2011/04/java-file-save-and-file-load-objects.html
-		FileInputStream loadFile = new FileInputStream(filePath);
-		ObjectInputStream load = new ObjectInputStream(loadFile);
-		Object obj = load.readObject();
-		Classifier classifier = (Classifier) obj;
-		setClassifier(classifier);
-		hasTrainedClassifier = true;
-		load.close();
 	}
 
 	/**
@@ -742,23 +558,14 @@ public class ClassificationManager implements Serializable{
 	 * This method opens a window containing a BarChart to visualize the results
 	 * of performing a cross-Validation test.
 	 */
-	public JPanel showBarChartCrossValidation() {
-		// Used code example:
-		// http://dvillela.servehttp.com:4000/apostilas/jfreechart_tutorial.pdf
+	public ObjectNode getJsonCrossValidation(int folds) {
 		if (!checkRequirementsForCrosValidation()) {
-			return new JPanel();
+			return null;
 		}
 		//WaitCalculatingForm.showCalculatingWindow();
-		performCrossValidation(false);
-		DefaultCategoryDataset dataset = convertCrossValidationResultToCategoryDataset(this.crossValidationResult);
-		String title = "Cross-Validation Results";
-		JFreeChart chart = ChartFactory.createBarChart(title, "Classes",
-				"Result Values", dataset, PlotOrientation.VERTICAL, true, true,
-				true);
-		//WaitCalculatingForm.hideCalculatingWindow();
-		return new ChartPanel(chart);
+		performCrossValidation(false, folds);
+		return convertCrossValidationResultToCategoryDataset(this.crossValidationResult);
 	}
-
 	/**
 	 * This method checks whether all requirements are fulfilled to perform a
 	 * crossValidation
@@ -767,14 +574,8 @@ public class ClassificationManager implements Serializable{
 	 */
 	private boolean checkRequirementsForCrosValidation() {
 		if (classifier == null) {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			JOptionPane.showMessageDialog(null,
-					"Could not find classifier. Select classifier first.");
 			return false;
 		} else if (trainingData == null) {
-			// Used code example: http://java-tutorial.org/joptionpane.html
-			JOptionPane.showMessageDialog(null,
-					"No training data. Add training data first.");
 			return false;
 		}
 		return true;
@@ -804,27 +605,47 @@ public class ClassificationManager implements Serializable{
 
 	/**
 	 * This method convert the results from a crossValidation-test into a
-	 * DefaultCategoryDataset.
+	 * Json object.
 	 * 
 	 * @param crossValidationResult
 	 *            The result of a crossValidation-test.
-	 * @return A DefaultCategoryDataset containing the crossValidation results.
+	 * @return A Json Object containing the crossValidation results.
 	 */
-	private DefaultCategoryDataset convertCrossValidationResultToCategoryDataset(
+	private ObjectNode convertCrossValidationResultToCategoryDataset(
 			Map<Object, PerformanceMeasure> crossValidationResult) {
-		DefaultCategoryDataset result = new DefaultCategoryDataset();
+		ObjectNode result = Json.newObject();
+		ArrayNode classesArray = result.putArray("classes");
+		ArrayNode dataArray = result.putArray("data");
+		ObjectNode TP = dataArray.addObject();
+		TP.put("name", "TP");
+		ArrayNode TPdata = TP.putArray("data");
+		
+		ObjectNode FP = dataArray.addObject();
+		FP.put("name", "FP");
+		ArrayNode FPdata = FP.putArray("data");
+
+		ObjectNode TN = dataArray.addObject();
+		TN.put("name", "TN");
+		ArrayNode TNdata = TN.putArray("data");
+
+		ObjectNode FN = dataArray.addObject();
+		FN.put("name", "FN");
+		ArrayNode FNdata = FN.putArray("data");
+
+		ObjectNode Accuracy = dataArray.addObject();
+		Accuracy.put("name", "Accuracy");
+		ArrayNode ACCdata = Accuracy.putArray("data");
+
+
 		for (Entry<Object, PerformanceMeasure> element : crossValidationResult
 				.entrySet()) {
-			result.addValue(element.getValue().getTPRate(), "TP", element
-					.getKey().toString());
-			result.addValue(element.getValue().getFPRate(), "FP", element
-					.getKey().toString());
-			result.addValue(element.getValue().getTNRate(), "TN", element
-					.getKey().toString());
-			result.addValue(element.getValue().getFNRate(), "FN", element
-					.getKey().toString());
-			result.addValue(element.getValue().getAccuracy(), "Accuracy",
-					element.getKey().toString());
+			PerformanceMeasure Value = element.getValue();
+			TPdata.add(Value.getTPRate());
+			FPdata.add(Value.getFPRate());
+			TNdata.add(Value.getTNRate());
+			FNdata.add(Value.getFNRate());
+			ACCdata.add(Value.getAccuracy());
+			classesArray.add(element.getKey().toString());
 		}
 		return result;
 	}
@@ -852,47 +673,6 @@ public class ClassificationManager implements Serializable{
 	}
 
 	/**
-	 * This method uses the given data to create a temp-File in text format
-	 * (e.g. _ ; date ; message).
-	 * 
-	 * @param data
-	 *            The data collected by the dataContainer.
-	 * @return The temp-File in text format.
-	 * @throws IOException
-	 *             Problem while reading file.
-	 * @throws ParseException
-	 *             Problem while parsing date.
-	 */
-	public File convertCollectedDataToFile(ArrayList<TimedMessage> data)
-			throws IOException, ParseException {
-		File tempFile = new File("FromDataToFile");
-		tempFile.deleteOnExit();
-		String separator = ";";
-		// String separatorString = InputOptionCollection.getUserInput(
-		// "Add the symbol which should be used as the separator:",
-		// "Separator Symbol", ";");
-		// if (separatorString != null) {
-		// separator = separatorString.substring(0, 1);
-		// } else {
-		// return tempFile;
-		// }
-		PrintWriter fileWriter = new PrintWriter(tempFile);
-		for (int i = 0; i < data.size(); i++) {
-			fileWriter.println("_"
-					+ separator
-					+ data.get(i).getDate()
-					+ separator
-					+ data.get(i).getMessage().replace('\n', ' ')
-							.replace((char) 13, ' '));
-		}
-		fileWriter.flush();
-		fileWriter.close();
-		convertTextFileIntoSparse(tempFile, separator,
-				ClassificationManager.SET_CLASSIFICATION_DATA, true);
-		return tempFile;
-	}
-
-	/**
 	 * This method gets a file in text format, converts it into a sparse dataset
 	 * that can be used by the classifiers and sets it a current training or
 	 * classification data.
@@ -910,108 +690,6 @@ public class ClassificationManager implements Serializable{
 	 * @throws ParseException
 	 *             Problem while parsing date.
 	 */
-	
-	public boolean convertTextFileIntoSparse(File dataFile, String separator,
-			int fileTarget, boolean fromCollectedData) throws IOException,
-			ParseException {
-		// Initialize variables
-		// Used code example: http://www.javaschubla.de/2007/javaerst0250.html
-		String instanceTitle = "";
-		int alreadyClassified = 1;
-		ArrayList<String> wordList = new ArrayList<String>();
-		boolean addBehindMessage = useBehindSeparator;
-		if (!fromCollectedData) {
-			addBehindMessage = InputOptionCollection.getYesNoSelection(
-					"Do you want to add every column behind the message column to the message? "
-							+ "(E.g. when the data contains the separator)",
-					"Add Information");
-		}
-		boolean preProcessData = InputOptionCollection.getYesNoSelection(
-				"Do you want to edit the data before using it?", "Edit data");
-		//PreprocessorForm preProcessor = null;
-		if (preProcessData) {
-		//	preProcessor = new PreprocessorForm();
-		//	wordList = getWordsList(dataFile, fileTarget, preProcessor,
-			//		addBehindMessage);
-		} else {
-			wordList = getWordsList(dataFile, fileTarget, addBehindMessage);
-		}
-		// Set training data or classification data
-		if (fileTarget == ClassificationManager.SET_CLASSIFICATION_DATA) {
-			if (fromCollectedData) {
-				instanceTitle = getInstanceTitle(alreadyClassified);
-			} else {
-				if (!InputOptionCollection.getYesNoSelection(
-						"Is your data already classified?", "Classified data.")) {
-					instanceTitle = getInstanceTitle(alreadyClassified);
-				} else {
-					alreadyClassified = 0;
-				}
-			}
-		}
-		// initialize reader and writer
-		FileReader fileReader = new FileReader(dataFile);
-		BufferedReader reader = new BufferedReader(fileReader);
-		File resultFile = getFile(false);
-		PrintWriter writer = new PrintWriter(resultFile);
-		// read file
-		String line = reader.readLine();
-		String resultLine;
-		ArrayList<Date> dateList = new ArrayList<Date>();
-		while (line != null) {
-			String[] elements = line.split(separator);
-			resultLine = selectInstanceTitle(elements[0], instanceTitle,
-					fileTarget, alreadyClassified);
-			if (fileTarget == ClassificationManager.SET_TRAINING_DATA) {
-				// data is classified and the class name will be kept
-				resultLine = elements[0];
-			} else {
-				if (alreadyClassified == 0) {
-					// data is classified and the class name will be kept
-					resultLine = elements[0];
-				} else {
-					// data is not classified and a dummy name is set
-					resultLine = instanceTitle;
-				}
-			}
-			// create line in sparse format
-			String[] words = new String[1];
-			String messageText = elements[2];
-			if (addBehindMessage) {
-				messageText = extractMessage(elements, 2, true);
-			}
-			if (preProcessData) {
-			//	if (preProcessor.isPOSSelected()) {
-			//		String resultText = preProcessor
-			//				.getPreproccedString(messageText);
-			//		words = resultText.split(" ");
-			//	} else {
-			//		words = preProcessor.getPreproccedArrayList(messageText
-			//				.split(" "));
-			//	}
-			} else {
-				words = messageText.split(" ");
-			}
-			ArrayList<ClassCounter> wordCounts = getWordCounterList(wordList,
-					words);
-			resultLine = resultLine + createSparseLine(wordList, wordCounts);
-			dateList.add(parseDate(elements[1]));
-			writer.println(resultLine);
-			line = reader.readLine();
-		}
-		// Close method
-		writer.flush();
-		reader.close();
-		writer.close();
-		setSparseData(resultFile, fileTarget);
-		if (fileTarget == ClassificationManager.SET_TRAINING_DATA) {
-			datesByIndexFromTrain = dateList;
-		} else {
-			datesByIndexFromClassification = dateList;
-		}
-		return true;
-
-	}
 	
 	public boolean convertTextFileIntoSparse(File dataFile, String separator,
 			int fileTarget, boolean fromCollectedData, boolean classified) throws IOException,
@@ -1035,12 +713,11 @@ public class ClassificationManager implements Serializable{
 		// Set training data or classification data
 		if (fileTarget == ClassificationManager.SET_CLASSIFICATION_DATA) {
 			if (fromCollectedData) {
-				instanceTitle = trainingData.classes().first().toString();
+				instanceTitle = this.dummyClass;
 				System.out.println(instanceTitle);
 			} else {
 				if (!classified) {
-					instanceTitle = trainingData.classes().first().toString();
-					System.out.println("***** " + instanceTitle);
+					instanceTitle = this.dummyClass;
 					columnOffset = 0;
 				} else {
 					
@@ -1093,9 +770,11 @@ public class ClassificationManager implements Serializable{
 		writer.close();
 		setSparseData(resultFile, fileTarget);
 		if (fileTarget == ClassificationManager.SET_TRAINING_DATA) {
-			datesByIndexFromTrain = dateList;
+			//datesByIndexFromTrain = dateList;
 		} else {
-			datesByIndexFromClassification = dateList;
+			//datesByIndexFromClassification = dateList;
+			datesByIndex = dateList;
+			System.out.println(datesByIndex.size() + "!!!!");
 		}
 		return true;
 
@@ -1157,22 +836,6 @@ public class ClassificationManager implements Serializable{
 	}
 
 	/**
-	 * Opens a dialog where the user can enter a dummy name for the unclassified
-	 * instances.
-	 * 
-	 * @param alreadyClassified
-	 *            '0' if data is already classified.
-	 * @return The String the user entered.
-	 */
-	private String getInstanceTitle(int alreadyClassified) {
-		return InputOptionCollection
-				.getUserInput(
-						"NOTICE: If your data is not already classified you must add a dummy-class for every instance.\n "
-								+ "This class name must be a class name from your training data.\n\n"
-								+ "Please add dummy name:", "Class title", "");
-	}
-
-	/**
 	 * This method uses the existing wordList from the training or creates a new
 	 * one by extracting the information from the dataFile and edit the data by
 	 * using the preprocessor.
@@ -1229,7 +892,6 @@ public class ClassificationManager implements Serializable{
 			// set wordList to use it later for feature extraction
 			wordList = getWordList(dataFile, addBehindMessage);
 			this.trainedWordList = wordList;
-			System.out.println(trainedWordList.size());
 		} else {
 			// use wordList from training data
 			wordList = this.trainedWordList;
@@ -1564,60 +1226,20 @@ public class ClassificationManager implements Serializable{
 				currClass = i;
 			}
 		}
-		return toInt(classCounter.get(currClass).getName());
+		return currClass;
 	}
 	
 	private int toInt(String className){
 		switch(className){
-		case "netural": return 0;
-		case "positiv": return 1;
-		case "negativ": return 2;
+		case "neutral": return 1;
+		case "positiv": return 2;
+		case "negativ": return 0;
 		default:
 			return 0;
 		
 		}
 	}
-	/**
-	 * Opens a dialog where the user can select where to save the result file.
-	 * Then the classified data is saved in sparse format.
-	 * 
-	 * @return TRUE if could save file successfully else FALSE.
-	 * @throws FileNotFoundException
-	 *             Could not find file.
-	 */
-	public boolean saveClassifiedData() throws FileNotFoundException {
-		File selectedFile = InputOptionCollection.saveFile();
-		if (selectedFile == null || classifiedData == null
-				|| datesByIndex == null) {
-			return false;
-		}
-		PrintWriter writer = new PrintWriter(selectedFile);
-		for (int i = 0; i < classifiedData.size(); i++) {
-		
-			if (datesByIndex == null) {
-				writer.println((i + 1) + ";"
-						+ classifiedData.get(i).classValue().toString() + ";"
-						+ instanceToSparseString(classifiedData.get(i)));
-			} else {
-				if (datesByIndex.size() != classifiedData.size()) {
-					writer.println((i + 1) + ";"
-							+ classifiedData.get(i).classValue().toString()
-							+ ";"
-							+ instanceToSparseString(classifiedData.get(i)));
-				} else {
-					writer.println((i + 1) + ";"
-							+ datesByIndex.get(i).toString() + ";"
-							+ classifiedData.get(i).classValue().toString()
-							+ ";"
-							+ instanceToSparseString(classifiedData.get(i)));
-				}
-			}
-		}
-		writer.flush();
-		writer.close();
-		return true;
-	}
-	
+
 	public File saveResultsToFile() throws FileNotFoundException {
 		File resultsFile = new File("Classified_Data.csv");
 		PrintWriter writer = new PrintWriter(resultsFile);
@@ -1677,7 +1299,7 @@ public class ClassificationManager implements Serializable{
 	 * 
 	 * @return Results of the crossValidation.
 	 */
-	public boolean performCrossValidation(boolean checkForClassifier) {
+	public boolean performCrossValidation(boolean checkForClassifier, int folds) {
 		if (checkForClassifier) {
 			if (this.crossValidationResult == null) {
 				// Used code example: http://java-tutorial.org/joptionpane.html
@@ -1688,21 +1310,16 @@ public class ClassificationManager implements Serializable{
 			}
 		}
 		Dataset crossValidationDataset = trainingData.copy();
-		if (InputOptionCollection
-				.getYesNoSelection(
-						"Do you want to use the classification dataSer (must be classified)?",
-						"Select Datasets")) {
-			crossValidationDataset.addAll(classificationData);
-		}
-		int folds = Integer
-				.parseInt(InputOptionCollection
-						.getUserInput(
-								"Enter number of folds (int). If the number n is negativ it will be used this way: (allData) - n",
-								"Number Of Folds", "10"));
 		this.crossValidationResult = classifier.getCrossValidation(
 				crossValidationDataset, folds);
-		return true;
-
+		if(this.crossValidationResult == null)
+		{
+			System.out.println("cross validation is null !!!! ");
+			return false;
+		}
+		else{
+			return true;
+		}
 	}
 
 	/**
@@ -1956,21 +1573,18 @@ public class ClassificationManager implements Serializable{
 		return trainingData.size();
 	}
 	
-	public int classificationSetSize() {
-		return datesByIndexFromClassification.size();
-	}
-	
 	public int classifiedDataSize() {
 		return classifiedData.size();
 	}
+	public int classificationDataSize() {
+		return classificationData.size();
+	}
 	
+	public void removeTrainingData() {
+		this.trainingData = null;
+	}
 	public void reset() {
-		this.datesByIndex = null;
-		this.classificationData = null;
-		this.classifiedData = null;
-		this.datesByIndexFromClassification = null;
-		this.datesByIndexFromTrain = null;
-		this.hasTrainedClassifier = false;
-		this.trainedWordList = null;
+		this.classifier = null;
+		this.trainingData = null;
 	}
 }

@@ -1,16 +1,12 @@
 package controllers;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.UUID;
 
+import models.ClassifierChoice;
 import models.PreprocessingChoice;
-import play.cache.Cache;
 import play.data.Form;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -41,74 +37,33 @@ public class ClassificationController extends Controller {
 	public static Result classification() {
 		if(!session().containsKey("ID"))
 			session("ID",  UUID.randomUUID().toString());
+		session("CLASSIFIER",  "DEFAULT");
 		ClassificationFormData queryData = new ClassificationFormData();
 		Form<ClassificationFormData> formData = Form.form(
 				ClassificationFormData.class).fill(queryData);
-		if(Utils.loadObject(session("ID")+"_class")==null)
-			Utils.saveObject(session("ID")+"_class", new ClassificationManager());
-		
+	
 		return ok(classification.render(formData,
-				PreprocessingChoice.makePreprocessingMap(), false, false));
+				PreprocessingChoice.makePreprocessingMap(), ClassifierChoice.makeClassifiersMap(), false, false));
 	}
 
 	public static Result handleClassificationUpload() {
+		Form<ClassificationFormData> form = Form.form(
+				ClassificationFormData.class).bindFromRequest();
+		ClassificationManager classificationManager;
+		if(session().get("CLASSIFIER").equals("DEFAULT"))
+			classificationManager = (ClassificationManager) Utils.loadObject("default_class");
+		else
+			classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
+		//Utils.saveObject(session("ID")+"_class", classificationManager);
 		MultipartFormData body = request().body().asMultipartFormData();
 		FilePart fileToUpload = body.getFile("file");
 		boolean addAfterMsg = false;
 		if (body.asFormUrlEncoded().get("add_after_msg") != null)
 			addAfterMsg = true;
-		boolean classified = false;
-		if (body.asFormUrlEncoded().get("already_classified") != null)
-			classified = true;
-		ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
-		System.out.println("****** loaded object");
-		classificationManager.setUseBehindSeparator(addAfterMsg);
-		String separator = body.asFormUrlEncoded().get("separator")[0];
-		if (separator.length() == 0)
-			separator = ";";
-		if (fileToUpload != null) {
-			File dataFile = fileToUpload.getFile();
-			/*Path temp = dataFile.toPath();
-			Path classificationDataPath = new File("public/uploaded/"
-					+ fileToUpload.getFilename()).toPath();*/
-			try {
-				//Files.move(temp, classificationDataPath, REPLACE_EXISTING);
-				response().setContentType("application/json");
-				ObjectNode result = Json.newObject();
-				result.put("file", dataFile.getName());
-				if(!classificationManager.isTrained())
-				{
-					classificationManager
-					.setClassifier(ClassifierCollection.SVM_CLASSIFIER);
-					File trainingDataFile = new File("public/datasets/Datensatz 1_v1.csv");
-					classificationManager.setData(trainingDataFile, 0,
-							ClassificationManager.SET_TRAINING_DATA, separator,
-							true);
-					System.out.println("training");
-					classificationManager.trainClassifier();
-				}
-				classificationManager.setData(dataFile, 0,
-						ClassificationManager.SET_CLASSIFICATION_DATA, separator, classified);
-				result.put("loaded", classificationManager.classificationSetSize());
-				result.put("message", classificationManager.classificationSetSize()+" message(s) were loaded and ready for classification");
-
-				System.out.println(Utils.saveObject(session("ID")+"_class", classificationManager) ? "****saved": "******* not saved");
-				return ok(result);
-			} catch (IOException | NumberFormatException | ParseException e) {
-				e.printStackTrace();
-				return internalServerError();
-			}
-		}
-		return internalServerError();
-	}
-	public static Result handleTrainingUpload() {
-		MultipartFormData body = request().body().asMultipartFormData();
-		FilePart fileToUpload = body.getFile("file");
-		boolean addAfterMsg = false;
-		if (body.asFormUrlEncoded().get("add_after_msg") != null)
-			addAfterMsg = true;
-		ClassificationManager classificationManager = new ClassificationManager();
-		
+		boolean addTrainingData = false;
+		if (body.asFormUrlEncoded().get("add_training_data") != null)
+			addTrainingData = true;
+		//ClassificationManager classificationManager = new ClassificationManager();
 		classificationManager.setUseBehindSeparator(addAfterMsg);
 		String separator = body.asFormUrlEncoded().get("separator")[0];
 		if (separator.length() == 0)
@@ -120,8 +75,56 @@ public class ClassificationController extends Controller {
 					+ fileToUpload.getFilename()).toPath();*/
 			try {
 				//Files.move(temp, newFile, REPLACE_EXISTING);
+				try {
+					classificationManager.setData(dataFile, 0,
+							ClassificationManager.SET_CLASSIFICATION_DATA, separator, false);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				if(!classificationManager.classifyData(addTrainingData))
+					return internalServerError();
+				response().setContentType("application/json");
+				ObjectNode result = Json.newObject();
+				result.put("file", dataFile.getName());
+				result.put("loaded", classificationManager.classifiedDataSize());
+				result.put("message", " Successfully classified "+classificationManager.classifiedDataSize()+" message(s)");
+				classificationManager.reset();
+				Utils.saveObject(session("ID")+"_class_plot", classificationManager);
+				return ok(result);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+				//Utils.saveObject(session("ID")+"_class", classificationManager);
+				return internalServerError();
+			}
+		}
+		return internalServerError();
+	}
+	public static Result handleTrainingUpload() {
+		MultipartFormData body = request().body().asMultipartFormData();
+		FilePart fileToUpload = body.getFile("file");
+		boolean addAfterMsg = false;
+		if (body.asFormUrlEncoded().get("training_add_after_msg") != null)
+			addAfterMsg = true;
+		int classifier = ClassifierChoice.findChoice(body.asFormUrlEncoded().get("classifiers")[0]).getId();
+		
+
+		ClassificationManager classificationManager = new ClassificationManager();
+		
+		classificationManager.setUseBehindSeparator(addAfterMsg);
+		String separator = body.asFormUrlEncoded().get("training_separator")[0];
+		if (separator.length() == 0)
+			separator = ";";
+		if (fileToUpload != null) {
+			File dataFile = fileToUpload.getFile();
+			/*Path temp = dataFile.toPath();
+			Path newFile = new File("public/uploaded/"
+					+ fileToUpload.getFilename()).toPath();*/
+			try {
+				//Files.move(temp, newFile, REPLACE_EXISTING);
 				classificationManager
-						.setClassifier(ClassifierCollection.SVM_CLASSIFIER);
+						.setClassifier(classifier);
 				classificationManager.setData(dataFile, 0,
 						ClassificationManager.SET_TRAINING_DATA, separator,
 						true);
@@ -132,11 +135,11 @@ public class ClassificationController extends Controller {
 				result.put("file", dataFile.getName());
 				result.put("loaded", classificationManager.trainingSetSize());
 				result.put("message", " Classifier trained with "+classificationManager.trainingSetSize()+" message(s)");
+				session("CLASSIFIER",  "CUSTOM");
 				Utils.saveObject(session("ID")+"_class", classificationManager);
 				return ok(result);
 			} catch (IOException | NumberFormatException | ParseException e) {
 				e.printStackTrace();
-				Utils.saveObject(session("ID")+"_class", classificationManager);
 				return internalServerError();
 			}
 		}
@@ -144,27 +147,41 @@ public class ClassificationController extends Controller {
 	}
 	
 	public static Result handlePlot(String plotType, int param) {
-		ClassificationManager emManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
-		switch (plotType) {
-		case "class-nominal":
-			return handleClassificationValuesPlot(emManager, ClassificationManager.Y_AXIS_NOMINAL);
-		case "mov-avg":
-			return handleMovingAveragePlot(emManager, param, ClassificationManager.Y_AXIS_METRIC);
-		case "val-reg":
-			return handleRegressionPlot(emManager, ClassificationManager.Y_AXIS_METRIC);
-		case "count-reg":
-			return handleRegressionPlot(emManager, ClassificationManager.Y_AXIS_INSTANCE_COUNT);
-		case "count-date":
-			return handleClassificationValuesPlot(emManager, ClassificationManager.Y_AXIS_INSTANCE_COUNT);
-		case "measurable":
-			return handleMeasurablePlot(emManager);
-		case "val-dist":
-			return handleDistributionPlot(emManager);
-		default:
-			return badRequest();
+		if(plotType.equals("cross-validation")){
+			ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
+			return handleCrossValidationPlot(classificationManager, param);
+		}
+		else
+		{
+			ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class_plot");
+			switch (plotType) {
+				case "class-nominal":
+					return handleClassificationValuesPlot(classificationManager, ClassificationManager.Y_AXIS_NOMINAL);
+				case "mov-avg":
+					return handleMovingAveragePlot(classificationManager, param, ClassificationManager.Y_AXIS_METRIC);
+				case "val-reg":
+					return handleRegressionPlot(classificationManager, ClassificationManager.Y_AXIS_METRIC);
+				case "count-reg":
+					return handleRegressionPlot(classificationManager, ClassificationManager.Y_AXIS_INSTANCE_COUNT);
+				case "count-date":
+					return handleClassificationValuesPlot(classificationManager, ClassificationManager.Y_AXIS_INSTANCE_COUNT);
+				case "measurable":
+					return handleMeasurablePlot(classificationManager);
+				case "val-dist":
+					return handleDistributionPlot(classificationManager);
+				default:
+					return badRequest();
+			}
 		}
 	}
 	
+	private static Result handleCrossValidationPlot(
+			ClassificationManager classManager, int param) {
+		ObjectNode result = classManager.getJsonCrossValidation(param);
+		response().setContentType("application/json");
+		return ok(result);
+	}
+
 	private static Result handleRegressionPlot(
 			ClassificationManager classManager, int axis) {
 		ObjectNode result = classManager.getJsonRegression(axis);
@@ -196,22 +213,6 @@ public class ClassificationController extends Controller {
 		ObjectNode result = classManager.getJsonMovingAverage(axis, param);
 		response().setContentType("application/json");
 		return ok(result);
-	}
-
-
-	public static Result postClassification() {
-		Form<ClassificationFormData> form = Form.form(
-				ClassificationFormData.class).bindFromRequest();
-		boolean addTrainingData = false;
-		if (request().body().asFormUrlEncoded().get("add_training_data") != null)
-			addTrainingData = true;
-		System.out.println(addTrainingData);
-		ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
-		classificationManager.classifyData(addTrainingData);
-		flash("success", "Successfully classified " + classificationManager.classifiedDataSize() + " message(s).");
-		Utils.saveObject(session("ID")+"_class", classificationManager);
-		return ok(classification.render(form,
-				PreprocessingChoice.makePreprocessingMap(), false, true));
 	}
 
 }

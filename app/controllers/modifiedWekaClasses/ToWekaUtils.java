@@ -62,7 +62,10 @@ public class ToWekaUtils implements Serializable {
     public Instances getDataset() {
         return wData;
     }
-
+    
+    public void reset() {
+    	wData = null;
+    }
     /* Converts this (dense/sparse) JavaML instance to a (dense/sparse) Weka instance */
     public Instance instanceToWeka(net.sf.javaml.core.Instance inst) {
        double[] values = new double[classSet ? inst.noAttributes() + 1 : inst.noAttributes()];

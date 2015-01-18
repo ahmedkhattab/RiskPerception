@@ -19,6 +19,7 @@ public class ClassificationFormData {
 
   
   public List<String> preprocessing = new ArrayList<>(); 
+  public List<String> classifiers = new ArrayList<>(); 
   
   /** Required for form instantiation. */
   public ClassificationFormData() {
