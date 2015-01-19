@@ -62,6 +62,13 @@ resultsAvailable: Boolean) @import bootstrap3._
 			</div>
 			 <span class="help-block">(Optional) Allows you to upload your own training data</span>
 		</div>
+		<div id="cross-validation" class="form-group" style="display: none;">
+			<div class="col-sm-offset-1 col-sm-3">
+			<button  type="button" value="Submit"
+							class="btn btn-success" >Cross Validation</button>
+							</div>
+			 <span class="help-block">Perform cross validation (only for custom classifiers)</span>
+			 </div>
 		<div class=" col-sm-offset-1">
 			@if(dataAvailable){
 			<div class="form-group">
@@ -141,8 +148,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 											
 						<button id="classify-submit" type="button" value="Submit"
 							class="btn btn-primary" style="margin-left: 15px;" disabled>Start Classification</button>
-						<button id="cross-validation" type="button" value="Submit"
-							class="btn btn-success" disabled>Cross Validation</button>
+					
 						
 					<div class="upload"></div>
 					<div class="progress"
@@ -277,7 +283,6 @@ resultsAvailable: Boolean) @import bootstrap3._
 								</ul>
 							</div>
 							<div id="folds" style="display: none;">
-							<label class="control-label">Enter the number of folds:</label>
 								<div class="input-group" style="width: 117px; padding-left: 0px;margin-right: auto;margin-left: auto;">
 							      <input type="number" class="form-control" min="2" max="10" value="2">
 							      <span class="input-group-btn">
@@ -461,17 +466,18 @@ resultsAvailable: Boolean) @import bootstrap3._
 				}
 			});
 	
-	$('#cross-validation').click(
+	$('#cross-validation button').click(
 			function(e) {
 				if (!$(this).closest('li').hasClass('active')) {
 					$('#folds').show();
 					$('#more-plots').hide();
+					window.location.hash = "";
 					window.location.hash = "visualization";
 					$("#visualization").show();
 					if($(this).data("model"))
 					{
-						$('#folds input').val($('#cross-validation').data("folds"));
-						showCrossValidationChart($(this).data("model"), $('#cross-validation').data("folds"));
+						$('#folds input').val($('#cross-validation button').data("folds"));
+						showCrossValidationChart($(this).data("model"), $('#cross-validation button').data("folds"));
 					}
 					else{
 						showCrossValidationChart();
@@ -483,9 +489,9 @@ resultsAvailable: Boolean) @import bootstrap3._
 		chart.showLoading();
 		jsRoutes.controllers.ClassificationController.handlePlot('cross-validation', $('#folds input').val()).ajax({
 			success : function(data) {
-				$('#cross-validation').data("model", data);
-				$('#cross-validation').data("folds",  $('#folds input').val());
-				chart = showCrossValidationChart(data, $('#cross-validation').data("folds"));
+				$('#cross-validation button').data("model", data);
+				$('#cross-validation button').data("folds",  $('#folds input').val());
+				chart = showCrossValidationChart(data, $('#cross-validation button').data("folds"));
 			},
 			error : function() {
 				alert("Error!")
@@ -610,7 +616,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 					$('#loadedMsgs > div').text('');
 					$('#loadedMsgs > div').append(data.result.message);
 					parentPanel.find('.files').empty();
-					$('#cross-validation').prop("disabled", false);
+					$('#cross-validation').show();
 
 				}
 			}).prop('disabled', !$.support.fileInput).parent()

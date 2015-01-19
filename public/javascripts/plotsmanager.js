@@ -334,6 +334,8 @@ function showCrossValidationChart(data, folds) {
 		options.xAxis.categories = data.classes;
 		options.title.text = options.title.text + ' (' + folds + ' folds)';
 	}
+	else
+		options.title.text = 'Please enter number of folds'
 		
 	$('#container').highcharts(options);
 }
