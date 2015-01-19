@@ -77,7 +77,7 @@ public class MainController extends Controller {
 						"attachment; filename=Emotion_Measurement_Results.csv");
 				return ok(dataFile);
 			} else if (dataType.equals("classified-data")) {
-				ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
+				ClassificationManager classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class_plot");
 				File dataFile = classificationManager.saveResultsToFile();
 				classificationManager.reset();
 				Utils.saveObject(session("ID")+"_class", classificationManager);

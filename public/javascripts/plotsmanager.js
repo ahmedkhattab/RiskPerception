@@ -356,7 +356,7 @@ function showMovingAverageChart(data, type, range) {
 	}
 	else{
 		options.series[0].data = [];
-		options.title.text = "Moving Average";
+		options.title.text = "Please enter a range value";
 	}
 		
 	$('#container').highcharts(options);

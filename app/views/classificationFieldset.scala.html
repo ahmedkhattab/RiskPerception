@@ -140,9 +140,9 @@ resultsAvailable: Boolean) @import bootstrap3._
 					</div>			
 											
 						<button id="classify-submit" type="button" value="Submit"
-							class="btn btn-default" style="margin-left: 15px;" disabled>Start Classification</button>
+							class="btn btn-primary" style="margin-left: 15px;" disabled>Start Classification</button>
 						<button id="cross-validation" type="button" value="Submit"
-							class="btn btn-default" disabled>Cross Validation</button>
+							class="btn btn-success" disabled>Cross Validation</button>
 						
 					<div class="upload"></div>
 					<div class="progress"
@@ -278,7 +278,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 							</div>
 							<div id="folds" style="display: none;">
 							<label class="control-label">Enter the number of folds:</label>
-								<div class="input-group" style="width: 117px; padding-left: 0px;">
+								<div class="input-group" style="width: 117px; padding-left: 0px;margin-right: auto;margin-left: auto;">
 							      <input type="number" class="form-control" min="2" max="10" value="2">
 							      <span class="input-group-btn">
 							        <button class="btn btn-default" type="button">Go!</button>
@@ -286,7 +286,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 							    </div><!-- /input-group -->
 							</div>
 							<div id="range-value" style="display: none; margin-top:5px;">
-								<div class="input-group" style="width: 117px; padding-left: 0px;">
+								<div class="input-group" style="width: 117px; padding-left: 0px;margin-right: auto;margin-left: auto;">
 							      <input type="number" class="form-control" min="1" value="1" placeholder="Range..">
 							      <span class="input-group-btn">
 							        <button class="btn btn-default" type="button">Go!</button>
@@ -504,8 +504,6 @@ resultsAvailable: Boolean) @import bootstrap3._
 								$('.flash').hide();
 								var parentPanel = $(this).closest(
 										'.uploading-panel');
-								$('#classify-submit').removeClass('btn-default')
-								$('#classify-submit').addClass("btn-primary");
 								$('#classify-submit').prop('disabled', false);
 								$('#classify-submit').data(data);
 								data.context = parentPanel.find('.upload');
@@ -589,6 +587,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 				fail : function(e, data) {
 					var parentPanel = $(this).closest(
 							'.uploading-panel');
+					$('#customize-classifier').delay(1000).modal('hide')
 					$('#uploadError').delay(1000).show(1);
 					$('#uploadError > div')
 							.text(
@@ -612,8 +611,6 @@ resultsAvailable: Boolean) @import bootstrap3._
 					$('#loadedMsgs > div').append(data.result.message);
 					parentPanel.find('.files').empty();
 					$('#cross-validation').prop("disabled", false);
-					$('#cross-validation').removeClass('btn-default')
-										.addClass('btn-success');
 
 				}
 			}).prop('disabled', !$.support.fileInput).parent()
@@ -645,6 +642,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 					$("#visualization").show();
 					$("#folds").hide();
 					$('#more-plots').show();
+					$('#save-form').show();
 					showTimeSeriesChart(null, "classification", "nominal");
 					var chart = $('#container').highcharts();
 					chart.showLoading();
