@@ -1,6 +1,6 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
-# ~~~~
+# ~
 
 # Home page
 GET     /                           controllers.MainController.index()
@@ -18,8 +18,7 @@ POST    /save/:dataType             controllers.MainController.saveData(dataType
 POST    /emotion/upload			    controllers.EmotionMeasurementController.handleEmotionUpload()
 POST    /classification/upload/train		controllers.ClassificationController.handleTrainingUpload()
 POST    /classification/upload/classify		controllers.ClassificationController.handleClassificationUpload()
-
-
+POST    /hooks/*file			controllers.Assets.at(path="/public/web-hooks", file)
 
 # GET     /preprocess                 controllers.MainController.preprocess()
 
