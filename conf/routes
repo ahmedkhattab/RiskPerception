@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                           controllers.MainController.index()
+GET		/admin						controllers.MainController.adminPage()
 GET     /tagcloud         			controllers.MainController.tagcloud()
 GET     /collect                    controllers.MainController.index()
 GET     /collect/tagcloud           controllers.MainController.tagcloud()
@@ -13,6 +14,7 @@ GET     /emotion/plot/:plotType 	controllers.EmotionMeasurementController.handle
 GET     /classification/plot/:plotType 	controllers.ClassificationController.handlePlot(plotType, param: Int ?= 0)
 
 POST    /                           controllers.MainController.postIndex()
+POST    /admin                      controllers.MainController.postAdmin()
 POST    /emotion                    controllers.EmotionMeasurementController.postEmotion()
 POST    /save/:dataType             controllers.MainController.saveData(dataType)
 POST    /emotion/upload			    controllers.EmotionMeasurementController.handleEmotionUpload()

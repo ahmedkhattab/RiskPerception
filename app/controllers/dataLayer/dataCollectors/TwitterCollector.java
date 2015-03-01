@@ -2,6 +2,9 @@ package controllers.dataLayer.dataCollectors;
 
 import java.util.ArrayList;
 
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
+
 import tools.DataTypes.TimedMessage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -9,6 +12,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 /**
@@ -77,6 +81,16 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 		status = "Ready";
 		return tweetList;
 	}
+	
+	public ArrayList<DBObject> getRawData(String apiQuery, String since,
+			String until, String language) {
+		// Used code example: http://twitter4j.org/en/code-examples.html
+		Twitter twitter = getTwitter();
+		Query query = createQuery(apiQuery, since, until, language);
+		ArrayList<DBObject> tweetList = createRawTweetList(twitter, query);
+		status = "Ready";
+		return tweetList;
+	}
 
 	/**
 	 * This method uses a given query to receive a list of Tweets (including
@@ -103,9 +117,44 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 				// Send query and add text to list
 				result = twitter.search(query);
 				for (Status tweet : result.getTweets()) {
+					
 					TimedMessage timedMessage = new TimedMessage(
 							tweet.getCreatedAt(), tweet.getText());
 					tweetList.add(timedMessage);
+				}
+				// Jump to next page
+				query = result.nextQuery();
+				status = "Twitter: Searched through Page " + (pageCounter + 1);
+				pageCounter++;
+			} catch (TwitterException twitterEx) {
+				// Show ExeptionMessage
+				status = "Twitter: Searched through: Page " + (pageCounter + 1);
+				// System.out.println(twitterEx.getMessage());
+				return tweetList;
+			}
+		}
+
+		return tweetList;
+	}
+	private ArrayList<DBObject> createRawTweetList(Twitter twitter, Query query) {
+		// Used code example: http://twitter4j.org/en/code-examples.html
+		// Initialisation
+		ArrayList<DBObject> tweetList = new ArrayList<DBObject>();
+		QueryResult result;
+		int pageCounter = 0;
+
+		// Used code example:
+		// http://stackoverflow.com/questions/17344921/twitter4j-multiple-queries-twitter-api-1-1
+		while (query != null && pageCounter < maxPages) {
+			try {
+				// Send query and add text to list
+				result = twitter.search(query);
+				for (Status tweet : result.getTweets()) {
+					
+					String jsonTweet = TwitterObjectFactory.getRawJSON(tweet);
+					  DBObject doc = (DBObject)JSON.parse(jsonTweet);
+					  doc.put("_id", doc.get("id_str"));
+					tweetList.add(doc);
 				}
 				// Jump to next page
 				query = result.nextQuery();
@@ -135,6 +184,7 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 		cb.setOAuthConsumerSecret(consumerSecret);
 		cb.setOAuthAccessToken(accessToken);
 		cb.setOAuthAccessTokenSecret(accessTokenSecret);
+		cb.setJSONStoreEnabled(true);
 		status = "Twitter: Connecting to Twitter";
 		return new TwitterFactory(cb.build()).getInstance();
 	}

@@ -3,6 +3,8 @@ package controllers.dataLayer;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import com.mongodb.DBObject;
+
 import controllers.dataLayer.dataCollectors.FacebookCollector;
 import controllers.dataLayer.dataCollectors.TumblrCollector;
 import controllers.dataLayer.dataCollectors.TwitterCollector;
@@ -29,6 +31,7 @@ public class DataContainer implements Serializable {
 	 * An ArrayList containing the collected data.
 	 */
 	private ArrayList<TimedMessage> data;
+	private ArrayList<DBObject> rawData;
 
 	/**
 	 * 0 for Twitter, 1 for Facebook, 3 for Tumblr
@@ -40,6 +43,7 @@ public class DataContainer implements Serializable {
 	 */
 	public DataContainer() {
 		this.data = new ArrayList<TimedMessage>();
+		this.rawData = new ArrayList<DBObject>();
 	}
 
 	/**
@@ -51,7 +55,7 @@ public class DataContainer implements Serializable {
 	public DataContainer(ArrayList<TimedMessage> data) {
 		this.data = data;
 	}
-
+	
 	/**
 	 * This method adds a list of Tweets to the existing data, in specific time
 	 * interval, containing a given text and in a given language.
@@ -73,6 +77,13 @@ public class DataContainer implements Serializable {
 		statusCode = STATUS_TWITTER;
 		IDataCollector twitterCollector = new TwitterCollector();
 		data.addAll(twitterCollector.getData(apiQuery, since, until, language));
+	}
+	
+	public void addRawDataFromTwitter(String apiQuery, String since, String until,
+			String language) {
+		statusCode = STATUS_TWITTER;
+		IDataCollector twitterCollector = new TwitterCollector();
+		rawData.addAll(twitterCollector.getRawData(apiQuery, since, until, language));
 	}
 
 	/**
@@ -127,6 +138,10 @@ public class DataContainer implements Serializable {
 	public ArrayList<TimedMessage> getData() {
 		return data;
 	}
+	
+	public ArrayList<DBObject> getRawData() {
+		return rawData;
+	}
 
 	/**
 	 * Set new data and remove old data.
@@ -137,7 +152,10 @@ public class DataContainer implements Serializable {
 	public void setData(ArrayList<TimedMessage> dataList) {
 		data = dataList;
 	}
-
+	
+	public void setRawData(ArrayList<DBObject> dataList) {
+		rawData = dataList;
+	}
 	/**
 	 * Add new data to the already existing data.
 	 * 
@@ -146,6 +164,10 @@ public class DataContainer implements Serializable {
 	 */
 	public void addData(ArrayList<TimedMessage> dataList) {
 		data.addAll(dataList);
+	}
+	
+	public void addRawData(ArrayList<DBObject> dataList) {
+		rawData.addAll(dataList);
 	}
 
 	/**

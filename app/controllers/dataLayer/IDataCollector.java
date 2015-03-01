@@ -2,6 +2,8 @@ package controllers.dataLayer;
 
 import java.util.ArrayList;
 
+import com.mongodb.DBObject;
+
 import tools.DataTypes.TimedMessage;
 
 /**
@@ -28,6 +30,9 @@ public interface IDataCollector {
 	 * @return List of public messages containing the given text.
 	 */
 	public ArrayList<TimedMessage> getData(String apiQuery, String since,
+			String until, String language);
+	
+	public ArrayList<DBObject> getRawData(String apiQuery, String since,
 			String until, String language);
 
 }

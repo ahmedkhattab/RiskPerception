@@ -15,6 +15,8 @@ import java.util.Locale;
 
 import javax.swing.JOptionPane;
 
+import com.mongodb.DBObject;
+
 import controllers.dataLayer.dataCollectors.FacebookCollector;
 import controllers.dataLayer.dataCollectors.TwitterCollector;
 import tools.InputOptionCollection;
@@ -133,6 +135,11 @@ public class DataManager implements Serializable{
 			String language) {
 		dataContainer.addDataFromTwitter(apiQuery, since, until, language);
 	}
+	
+	public void addRawDataFromTwitter(String apiQuery, String since, String until,
+			String language) {
+		dataContainer.addRawDataFromTwitter(apiQuery, since, until, language);
+	}
 
 	/**
 	 * This method adds a list of public messages to the existing data, in
@@ -196,6 +203,12 @@ public class DataManager implements Serializable{
 			addDataFromTumblr(text, since, until, language);
 		}
 	}
+	
+	public void collectRawData(String text, String since, String until,
+			String language) {
+		removeData();
+			addRawDataFromTwitter(text, since, until, language);
+	}
 
 	/**
 	 * Return the data stored in the dataContainer.
@@ -206,13 +219,20 @@ public class DataManager implements Serializable{
 		return dataContainer.getData();
 	}
 
+	public ArrayList<DBObject> getRawData() {
+		return dataContainer.getRawData();
+	}
 	/**
 	 * Removes the current data.
 	 */
 	public void removeData() {
 		this.dataContainer.setData(new ArrayList<TimedMessage>());
 	}
+	public void removeRawData() {
+		this.dataContainer.setRawData(new ArrayList<DBObject>());
+	}
 
+	
 	/**
 	 * Returns the status of the data container.
 	 * 

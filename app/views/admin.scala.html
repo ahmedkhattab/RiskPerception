@@ -1,0 +1,50 @@
+@(adminForm: Form[views.formdata.AdminFormData]) 
+
+@import helper._ 
+@import bootstrap3.textarea
+@import bootstrap3.text
+
+@import controllers.routes.javascript._ 
+
+@main("Admin") {
+<div class="container">
+
+ @if(flash.containsKey("success")) {
+		<div class="well">
+			<div id="success-message" class="text-success">
+				@flash.get("success")</div>
+		</div>
+		} @if(flash.containsKey("error")) {
+		<div class="well">
+			<div id="error-message" class="text-danger">
+				@flash.get("error")</div>
+		</div>
+		}
+		
+			<div class="well">
+				
+		@form(routes.MainController.postAdmin(), 'class -> "form-horizontal") {
+		<fieldset>
+			<div class="col-sm-6">
+			 @text(adminForm("token"),
+			        label = "Security Token",
+			        placeholder = "",
+			        help = "",
+			        fieldType = "password")
+			        
+			@textarea(adminForm("file"), label = "Keywords File")
+			</div>
+			
+			 <div class="form-group">
+			    <div class="col-sm-offset-5 col-sm-10">
+			      <button id="submit" type="submit" value="Submit" class="btn btn-primary">Save</button>
+			    </div>
+			  </div>
+		</fieldset>
+		}
+
+			</div>
+</div>
+
+
+}
