@@ -5,8 +5,6 @@ import java.util.ArrayList;
 
 import com.mongodb.DBObject;
 
-import controllers.dataLayer.dataCollectors.FacebookCollector;
-import controllers.dataLayer.dataCollectors.TumblrCollector;
 import controllers.dataLayer.dataCollectors.TwitterCollector;
 import tools.DataTypes.TimedMessage;
 
@@ -100,6 +98,7 @@ public class DataContainer implements Serializable {
 	 *            <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1
 	 *            code</a> for the language.
 	 */
+/*
 	public void addDataFromFacebook(String apiQuery, String since,
 			String until, String language) {
 		statusCode = STATUS_FACEBOOK;
@@ -107,7 +106,7 @@ public class DataContainer implements Serializable {
 		data.addAll(facebookCollector.getData(apiQuery, since, until, language));
 		statusCode = STATUS_FINISHED;
 	}
-
+*/
 	/**
 	 * This method adds a list of public messages to the existing data, in
 	 * specific time interval, containing a given text and in a given language.
@@ -122,6 +121,7 @@ public class DataContainer implements Serializable {
 	 *            <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1
 	 *            code</a> for the language.
 	 */
+/*
 	public void addDataFromTumblr(String apiQuery, String since, String until,
 			String language) {
 		statusCode = STATUS_TUMBLR;
@@ -129,7 +129,7 @@ public class DataContainer implements Serializable {
 		data.addAll(tumblrCollector.getData(apiQuery, since, until, language));
 		statusCode = STATUS_FINISHED;
 	}
-
+*/
 	/**
 	 * Get all data stored in this object.
 	 * 
@@ -179,10 +179,12 @@ public class DataContainer implements Serializable {
 		switch (statusCode) {
 		case STATUS_TWITTER:
 			return TwitterCollector.getStatus();
+			/*
 		case STATUS_FACEBOOK:
 			return FacebookCollector.getStatus();
 		case STATUS_TUMBLR:
 			return TumblrCollector.getStatus();
+			*/
 		case STATUS_FINISHED:
 			return "Collected " + data.size() + " message(s).";
 		default:
