@@ -17,7 +17,6 @@ import javax.swing.JOptionPane;
 
 import com.mongodb.DBObject;
 
-import controllers.dataLayer.dataCollectors.FacebookCollector;
 import controllers.dataLayer.dataCollectors.TwitterCollector;
 import tools.InputOptionCollection;
 import tools.DataTypes.TimedMessage;
@@ -155,10 +154,12 @@ public class DataManager implements Serializable{
 	 *            <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1
 	 *            code</a> for the language.
 	 */
+	/*
 	public void addDataFromFacebook(String apiQuery, String since,
 			String until, String language) {
 		dataContainer.addDataFromFacebook(apiQuery, since, until, language);
 	}
+	*/
 
 	/**
 	 * This method adds a list of public messages to the existing data, in
@@ -174,11 +175,12 @@ public class DataManager implements Serializable{
 	 *            <a href="http://en.wikipedia.org/wiki/ISO_639-1">ISO 639-1
 	 *            code</a> for the language.
 	 */
+	/*
 	public void addDataFromTumblr(String apiQuery, String since, String until,
 			String language) {
 		dataContainer.addDataFromTumblr(apiQuery, since, until, language);
 	}
-
+	 */
 	/**
 	 * This method adds data from selected source to the dataContainer
 	 * 
@@ -196,12 +198,14 @@ public class DataManager implements Serializable{
 		if (addTwitter) {
 			addDataFromTwitter(text, since, until, language);
 		}
+		/*
 		if (addFacebook) {
 			addDataFromFacebook(text, since, until, language);
 		}
 		if (addTumblr) {
 			addDataFromTumblr(text, since, until, language);
 		}
+		*/
 	}
 	
 	public void collectRawData(String text, String since, String until,
@@ -259,10 +263,11 @@ public class DataManager implements Serializable{
 	 * @param token
 	 *            Access-Token from Facebook.
 	 */
+	/*
 	public void setFacebookAccessToken(String token) {
 		FacebookCollector.setAccessToken(token);
 	}
-
+	 */
 	/**
 	 * This method opens a dialog where the user can select one or mor text
 	 * files. The text is split into the sentences and then set a the current
