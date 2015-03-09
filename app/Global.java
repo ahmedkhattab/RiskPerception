@@ -78,17 +78,15 @@ public class Global extends GlobalSettings {
 		c.set(Calendar.MINUTE, 0);
 		c.set(Calendar.SECOND, 0);
 		Date plannedStart = c.getTime();
-		Date now = new Date();
+		Date today = new Date();
 		Date nextRun;
-		if (now.after(plannedStart)) {
+		if (today.after(plannedStart)) {
 			c.add(Calendar.DAY_OF_WEEK, 1);
 			nextRun = c.getTime();
 		} else {
 			nextRun = c.getTime();
 		}
-		System.out.println("running");
-
-		delayInSeconds = (nextRun.getTime() - now.getTime()) / 1000; // To
+		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000; // To
 																		// convert
 																		// milliseconds
 																	// to
@@ -97,7 +95,7 @@ public class Global extends GlobalSettings {
 			@Override
 			public void run() {
 				try {
-					System.out.println("running");
+					System.out.println("running job @:"+ new Date().toString());
 					JsonNode root = Json.parse(new FileInputStream("private/keywords.json"));
 	
 					  ObjectMapper objectMapper = new ObjectMapper();
@@ -112,20 +110,20 @@ public class Global extends GlobalSettings {
 						query += keyword.toString()+" OR ";
 					}*/
 					DataManager dataManager = new DataManager();
-					dataManager.setTwitterMaxPages(10);
+					dataManager.setTwitterMaxPages(100);
 					Date current = new Date();
 					SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
 					Calendar now = Calendar.getInstance();
 					now.setTime(current);
 					now.add(Calendar.DAY_OF_WEEK, -7);
-					/*dataManager.collectRawData(query,
+					dataManager.collectRawData(query,
 							sdfDate.format(now.getTime()),
 							sdfDate.format(current),
 							"en");
 					ArrayList<DBObject> tweets = dataManager.getRawData();
-					DBCollection tweetsCollection = PlayJongo.getCollection("trial").getDBCollection();
+					DBCollection tweetsCollection = PlayJongo.getCollection("tweets").getDBCollection();
 					tweetsCollection.insert(tweets, new InsertOptions().continueOnError(true));				
-					*/
+					
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (Exception e) {
@@ -133,7 +131,7 @@ public class Global extends GlobalSettings {
 				} 
 			}
 		};
-		FiniteDuration delay = FiniteDuration.create(0, TimeUnit.SECONDS);
+		FiniteDuration delay = FiniteDuration.create(delayInSeconds, TimeUnit.SECONDS);
 		FiniteDuration frequency = FiniteDuration.create(1, TimeUnit.DAYS);
 		job = Akka.system()
 				.scheduler()
