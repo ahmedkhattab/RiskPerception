@@ -75,7 +75,7 @@ public class Global extends GlobalSettings {
 
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.HOUR_OF_DAY, 16);
-		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.MINUTE, 55);
 		c.set(Calendar.SECOND, 0);
 		Date plannedStart = c.getTime();
 		Date today = new Date();
