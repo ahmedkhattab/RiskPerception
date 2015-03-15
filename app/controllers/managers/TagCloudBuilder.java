@@ -115,6 +115,7 @@ public class TagCloudBuilder {
 				tagSymbol));
 		Random random = new Random();
 		int cutoff = 10;
+		System.out.println(wordList.size());
 		// select a random taggedWord and add it to panel
 		for (int i = 0; wordList.size() != 0; i = random.nextInt(wordList
 				.size())) {			
@@ -127,7 +128,10 @@ public class TagCloudBuilder {
 			{
 				wordList.remove(i);
 				wordCounter.remove(i);
-				continue;
+				if (wordList.size() == 0)
+					break;
+				else
+					continue;
 			}
 			result += getLabel(wordList.get(i), count);
 			wordList.remove(i);

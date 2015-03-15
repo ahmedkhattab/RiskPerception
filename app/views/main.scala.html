@@ -121,6 +121,7 @@
     	
     	 jsRoutes.controllers.MainController.tagcloud().ajax({
     	        success: function(data) {
+    	        	$('#tagcloud-modal .modal-body').empty();
     	        	$('#tagcloud-modal .modal-body').append(data);
     	        	$('#tagcloud-modal').modal('show');
     	        },
