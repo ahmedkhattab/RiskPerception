@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import models.LanguageChoice;
 import models.PreprocessingChoice;
+import play.Play;
 import play.Routes;
 import play.cache.Cache;
 import play.data.Form;
@@ -144,7 +145,7 @@ public class MainController extends Controller {
 					{
 			
 					FileWriter file;
-					file = new FileWriter("private/keywords.json");
+					file = new FileWriter(Play.application().getFile("private/keywords.json"));
 					file.write(data.file);
 					file.flush();
 					file.close();

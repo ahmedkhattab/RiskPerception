@@ -44,7 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jongo.*;
 
 public class Global extends GlobalSettings {
-	
+
 	private Cancellable job;
 	@Override
 	public void onStart(Application app) {
@@ -52,8 +52,7 @@ public class Global extends GlobalSettings {
 			ClassificationManager classificationManager = new ClassificationManager();
 			classificationManager
 					.setClassifier(ClassifierCollection.SVM_CLASSIFIER);
-			File trainingDataFile = new File(
-					"public/datasets/Datensatz 1_v1.csv");
+			File trainingDataFile = Play.application().getFile("private/datasets/Datensatz 1_v1.csv");
 			try {
 				classificationManager.setData(trainingDataFile, 0,
 						ClassificationManager.SET_TRAINING_DATA, ";", true);
@@ -96,7 +95,7 @@ public class Global extends GlobalSettings {
 			public void run() {
 				try {
 					System.out.println("running job @:"+ new Date().toString());
-					JsonNode root = Json.parse(new FileInputStream("private/keywords.json"));
+					JsonNode root = Json.parse(new FileInputStream(Play.application().getFile("private/keywords.json")));
 	
 					  ObjectMapper objectMapper = new ObjectMapper();
 

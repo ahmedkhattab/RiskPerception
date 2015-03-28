@@ -1,3 +1,5 @@
+import NativePackagerHelper._
+
 name := """RiskPerception"""
 
 version := "1.0-SNAPSHOT"
@@ -23,3 +25,19 @@ libraryDependencies ++= Seq(
 resolvers ++= Seq(
   "webjars" at "http://webjars.github.com/m2"
 )
+
+mappings in Universal ++=
+(baseDirectory.value / "private" * "*" get) map
+    (x => x -> ("private/" + x.getName))
+
+mappings in Universal ++=
+(baseDirectory.value / "private" / "datastore" * "*" get) map
+    (x => x -> ("private/datastore/" + x.getName))
+
+mappings in Universal ++=
+(baseDirectory.value / "private" / "uploaded" * "*" get) map
+    (x => x -> ("private/uploaded/" + x.getName))
+
+mappings in Universal ++=
+(baseDirectory.value / "private" / "datasets" * "*" get) map
+    (x => x -> ("private/datasets/" + x.getName))
