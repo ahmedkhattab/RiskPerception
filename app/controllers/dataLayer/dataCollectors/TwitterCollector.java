@@ -117,7 +117,6 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 				// Send query and add text to list
 				result = twitter.search(query);
 				for (Status tweet : result.getTweets()) {
-					
 					TimedMessage timedMessage = new TimedMessage(
 							tweet.getCreatedAt(), tweet.getText());
 					tweetList.add(timedMessage);

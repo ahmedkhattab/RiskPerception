@@ -1,0 +1,17 @@
+@(visualizationForm: Form[views.formdata.VisualizationFormData], 
+  preprocessing: Map[String,Boolean],
+  dataAvailable: Boolean,
+  resultsAvailable: Boolean) 
+
+@import helper._ 
+@import controllers.routes.javascript._ 
+
+@main("Visualization") {
+<div class="container">
+	<div class="well">
+
+		@form(routes.VisualizationController.postVisualization(), 'class -> "form-horizontal", 'id -> "visForm") {
+		@visualizationFieldset(visualizationForm, preprocessing, dataAvailable, resultsAvailable) } 
+	</div>
+</div>
+}

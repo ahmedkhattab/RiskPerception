@@ -1,0 +1,491 @@
+@(visualizationForm: Form[views.formdata.VisualizationFormData], preprocessing:
+Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
+@import bootstrap3._
+<style>
+.panel-heading .accordion-toggle:after {
+	font-family: 'Glyphicons Halflings';
+	content: "\e114";
+	float: right;
+	color: grey;
+}
+
+.panel-heading .accordion-toggle.collapsed:after {
+	content: "\e080";
+}
+
+.dropdown-header {
+	background-color: rgb(172, 172, 172);
+	color: white;
+}
+</style>
+
+<!-- Modal -->
+
+<fieldset>
+	<!-- Header -->
+	<div id="legend">
+		<legend>Visualization</legend>
+	</div>
+
+	<div class="col-sm-8">
+		<div id="loadedMsgs" class="flash well col-sm-offset-1"
+			style="display: none;">
+			<div class="text-success"></div>
+		</div>
+		<div id="uploadError" class="flash well col-sm-offset-1"
+			style="display: none;">
+			<div class="text-danger"></div>
+		</div>
+		@if(flash.containsKey("success")) {
+		<div class="flash well col-sm-offset-1">
+			<div id="success-message" class="text-success">
+				@flash.get("success")</div>
+		</div>
+		} @if(flash.containsKey("error")) {
+		<div class="flash well col-sm-offset-1">
+			<div id="error-message" class="text-danger">
+				@flash.get("error")</div>
+		</div>
+		}
+
+		<div class=" col-sm-offset-1">
+@if(dataAvailable){
+			<div class="form-group">
+				<label class="col-sm-4 control-label" for="datasource-select">Select
+					datasource:</label>
+				<div class="col-sm-4">
+					<select class="form-control" id="datasource-select"
+						name="datasource-select"> 
+						<option id="fromQuery" value="fromQuery">Use last query
+							data</option> 
+						<option id="fromFile" value="fromFile">Load data from
+							file</option>
+					</select>
+				</div>
+			</div>
+}
+			<!-- Uploading Panel -->
+			<div id="uploading-panel" class="panel panel-default "
+				style="display: none;">
+				<div class="panel-heading" role="tab" id="headingOne">
+					<h4 class="panel-title">Load Data From File</h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">
+						<span class="btn btn-default fileinput-button btn-sm"
+							style="margin-left: 30px;"> <i
+							class="glyphicon glyphicon-plus"></i> <span>Select file...</span>
+							<!-- The file input field used as target for the file upload widget -->
+							<input id="fileupload" type="file" name="file">
+						</span> <span id="files" class="files"></span>
+					</div>
+
+					<div class="form-group">
+						<label class="col-sm-5 control-label">Position of date
+							column</label>
+						<div class="col-sm-2" style="width: 84px;">
+							<input type="number" class="form-control input-sm"
+								id="date_column_pos" name="date_column_pos" value="1" min="1"
+								placeholder="" /> <span class="help-block"></span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-5 control-label">Position of message
+							column</label>
+						<div class="col-sm-2" style="width: 84px;">
+							<input type="number" class="form-control input-sm"
+								id="msg_column_pos" name="msg_column_pos" value="2" min="1"
+								placeholder="" /> <span class="help-block"></span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-5 control-label">Separator symbol</label>
+						<div class="col-sm-2" style="width: 84px;">
+							<input type="text" class="form-control input-sm" id="separator"
+								name="separator" value=";" placeholder="" /> <span
+								class="help-block"></span>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="checkbox" id="add_after_msg_div"
+							style="margin-left: 30px;">
+							<label> <input type="checkbox" name="add_after_msg"
+								id="add_after_msg" value="true"> Consider all data after
+								message as part of the message ?
+							</label>
+						</div>
+					</div>
+					<div id='upload'></div>
+					<div id="progress" class="progress"
+						style="height: 14px; margin-top: 7px; display: none;">
+						<div
+							class="progress-bar progress-bar-success progress-bar-striped"></div>
+					</div>
+
+				</div>
+			</div>
+			<!-- Uploading panel -->
+		</div>
+
+		<div class="modal fade" id="preprocess" tabindex="-1" role="dialog"
+			aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog" style="width: 30%;">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="close" data-dismiss="modal">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+						@checkboxes(visualizationForm("preprocessing"), label = "", checkboxMap
+						= preprocessing, help = "")
+
+						<button type="button" class="btn btn-primary pull-right"
+							data-dismiss="modal">Done</button>
+						<div class="clearfix"></div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<div class="col-sm-offset-1 col-sm-10">
+				<button type="button" data-toggle="modal" data-target="#preprocess"
+					class="btn btn-default">Preprocessing...</button>
+				<button id="measure-submit" type="submit" value="Submit"
+					class="btn btn-primary">Start Measuring</button>
+			</div>
+		</div>
+
+		<div id="visualization" class="col-sm-offset-1"
+			@if(!resultsAvailable){style="display: none;"}>
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">Visualized Results</h3>
+					<span class="pull-right"> <!-- Tabs -->
+						<ul class="nav panel-tabs">
+							<!--
+							<li class="active"><a href="#tab1" data-toggle="tab">Time
+									Course</a></li>
+							<li><a href="#tab2" data-toggle="tab">Distribution</a></li>
+							<li><a href="#tab3" data-toggle="tab">Instance Count</a></li>
+							-->
+						</ul>
+					</span>
+				</div>
+				<div class="panel-body">
+					<div class="tab-content">
+						<div class="tab-pane active" id="tab1">
+							<div class="btn-group">
+								<button type="button" class="btn btn-default dropdown-toggle"
+									data-toggle="dropdown" aria-expanded="false">
+									More plots... <span class="caret"></span>
+								</button>
+								<ul id="plots-menu" class="dropdown-menu dropdown-menu-right"
+									role="menu">
+
+									<li role="presentation" class="dropdown-header">Time
+										Course</li>
+									<li class="active"><a id="em-val" href="#myModal" role="menuitem"
+										data-toggle="modal">Emotion Values</a></li>
+									<li><a id="mov-avg" href="#myModal" role="menuitem"
+										data-toggle="modal">Moving Average</a></li>
+									<li><a id="val-reg" href="#myModal" role="menuitem"
+										data-toggle="modal">Regression</a></li>								
+
+									<li role="presentation" class="dropdown-header">Instance
+										Count</li>
+									<li><a id="count-date" href="#myModal" role="menuitem"
+										data-toggle="modal">Instance Count per date</a></li>
+									<li><a id="count-reg" href="#myModal" role="menuitem"
+										data-toggle="modal">Regression</a></li>
+									<li><a id="measurable" href="#myModal" role="menuitem"
+										class="btn" data-toggle="modal">Measurable/Non-measurable</a></li>
+									<li><a id="val-dist" href="#myModal" role="menuitem"
+										data-toggle="modal">Value Distribution</a></li>
+								</ul>
+							</div>
+							<div id="range-value" style="display: none; margin-top:5px;">
+								<div class="input-group" style="width: 117px; padding-left: 0px;margin-right: auto;margin-left: auto;">
+							      <input type="number" class="form-control" min="1" value="1" placeholder="Range..">
+							      <span class="input-group-btn">
+							        <button class="btn btn-default" type="button">Go!</button>
+							      </span>
+							    </div><!-- /input-group -->
+							</div>
+							<div id="container" style="width: 100%; height: 400px;"></div>
+							<br />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+	</div>
+</fieldset>
+
+<script>
+if ($("#datasource-select").length){
+	$("#datasource-select").change(function() {
+		$("#datasource-select option:selected").each(function() {
+			if ($(this).attr("value") == "fromQuery") {
+				$("#uploading-panel").hide();
+
+			}
+			if ($(this).attr("value") == "fromFile") {
+				$("#uploading-panel").show();
+			}
+		});
+	}).change();
+}
+else
+	$("#uploading-panel").show();
+	
+	$('#plots-menu li').click(function(e) {
+		$('#plots-menu li.active').removeClass('active');
+		var $this = $(this);
+		if (!$this.hasClass('active')) {
+			$this.addClass('active');
+		}
+	});
+
+	$('#val-reg').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
+			if($(this).data("model"))
+				showValuesRegressionChart($(this).data("model"), 'linear');
+			else{
+			
+			showValuesRegressionChart(null, 'linear');
+			var chart = $('#container').highcharts();
+			chart.showLoading();
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('val-reg').ajax({
+				success : function(data) {
+					$('#val-reg').data("model", data);
+					chart = showValuesRegressionChart(data, 'linear');
+				},
+				error : function() {
+					alert("Error!")
+				}
+			});
+			}
+		}
+	});
+	$('#measurable').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
+			if($(this).data("model"))
+				showMeasurablePieChart($(this).data("model"));
+			else{
+			showMeasurablePieChart();
+			var chart = $('#container').highcharts();
+			chart.showLoading();
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('measurable').ajax({
+				success : function(data) {
+					$('#measurable').data("model", data);
+					chart = showMeasurablePieChart(data);
+				},
+				error : function() {
+					alert("Error!")
+				}
+			});
+			}
+		}
+	});
+	$('#val-dist').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
+			if($(this).data("model"))
+				showDistributionBarChart($(this).data("model"));
+			else{
+				
+			showDistributionBarChart();
+			var chart = $('#container').highcharts();
+			chart.showLoading();
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('val-dist').ajax({
+				success : function(data) {
+					$('#val-dist').data("model", data);
+					chart = showDistributionBarChart(data);
+				},
+				error : function() {
+					alert("Error!")
+				}
+			});
+			}
+		}
+	});
+	$('#mov-avg').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').show();
+			if($(this).data("model"))
+			{
+				$('#range-value input').val($('#mov-avg').data("range"));
+				showMovingAverageChart($(this).data("model"), "emotion", $('#mov-avg').data("range"));
+			}
+			else{
+				showMovingAverageChart(null, "emotion", null);
+			}
+		}
+	});
+	$('#range-value button').click(function(e) {
+		var chart = $('#container').highcharts();
+		chart.showLoading();
+		jsRoutes.controllers.EmotionMeasurementController.handlePlot('mov-avg', $('#range-value input').val()).ajax({
+			success : function(data) {
+				$('#mov-avg').data("model", data);
+				$('#mov-avg').data("range",  $('#range-value input').val());
+				chart = showMovingAverageChart(data, "emotion", $('#mov-avg').data("range"));
+			},
+			error : function() {
+				alert("Error!")
+			}
+		});
+	});
+	$('#count-reg').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
+
+			if($(this).data("model"))
+				showValuesRegressionChart($(this).data("model"), 'linear');
+			else{
+			showValuesRegressionChart(null, 'linear');
+			var chart = $('#container').highcharts();
+			chart.showLoading();
+			jsRoutes.controllers.EmotionMeasurementController.handlePlot('count-reg').ajax({
+				success : function(data) {
+					$('#count-reg').data("model", data);
+					chart = showValuesRegressionChart(data, 'linear');
+				},
+				error : function() {
+					alert("Error!")
+				}
+			});
+		}
+		}
+	});
+	$('#em-val').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+				$('#range-value').hide();
+				showTimeSeriesChart($(this).data("model"),"emotion");
+			}
+	});
+	$('#count-date').click(function(e) {
+		if (!$(this).closest('li').hasClass('active')) {
+			$('#range-value').hide();
+			if($(this).data("model"))
+				showTimeSeriesChart($(this).data("model"), "emotion");
+			else{
+				showTimeSeriesChart(null, "emotion");
+				var chart = $('#container').highcharts();
+				chart.showLoading();
+				jsRoutes.controllers.EmotionMeasurementController.handlePlot('count-date').ajax({
+					success : function(data) {
+						$('#count-date').data("model", data);
+						chart = showTimeSeriesChart(data, "emotion");
+					},
+					error : function() {
+						alert("Error!")
+					}
+				});
+			}
+		}
+	});
+	$(function() {
+
+		// Change this to the location of your server-side upload handler:
+		$('#fileupload')
+				.fileupload(
+						{
+							url : '@routes.EmotionMeasurementController.handleEmotionUpload()',
+							dataType : 'json',
+							add : function(e, data) {
+								$('.flash').hide();
+								if ($('#uploadButton').length)
+									$('#uploadButton').remove();
+								var uploadButton = $(
+										'<button id="uploadButton"/>')
+										.addClass('btn btn-success')
+										.prop('type', 'button')
+										.on('click', function() {
+											$('#progress').show();
+											var $this = $(this), 
+											data = $this.data();
+											$this.off('click')
+												.text('Abort')
+												.removeClass('btn-success')
+												.addClass('btn-danger')
+												.on('click', function() {
+											$this.remove();
+											data.abort();
+										});
+											data.submit().always(
+												function() {
+													$this.remove();
+											});
+										});
+
+								uploadButton.text('Upload').data(data);
+								data.context = $('#upload')
+										.append(uploadButton);
+								$('#progress .progress-bar').css('width',
+										0 + '%');
+								$.each(data.files, function(index, file) {
+									$('#files').text(file.name);
+								});
+							},
+							progressall : function(e, data) {
+								console.log(data.loaded);
+								var progress = parseInt(data.loaded
+										/ data.total * 100, 10);
+								$('#progress .progress-bar').css('width',
+										progress + '%');
+
+							},
+							fail : function(e, data) {
+								$('#uploadError').delay(1000).show(1);
+								$('#uploadError > div')
+										.text(
+												"Error occured during upload, please refresh and try again ");
+								$('#progress div').removeClass(
+										'progress-bar-success').addClass(
+										'progress-bar-danger');
+								$('#progress').delay(700).hide(1);
+							},
+							done : function(e, data) {
+								console.dir(data);
+								$('#progress').delay(700).hide(1);
+								$('#files').text(data.result.file);
+								$('#loadedMsgs').delay(1000).show(1);
+								$('#loadedMsgs > div').text(
+										"Finished loading data: Collected "
+												+ data.result.loaded
+												+ " message(s)");
+								$('#files').empty();
+
+							}
+						}).prop('disabled', !$.support.fileInput).parent()
+				.addClass($.support.fileInput ? undefined : 'disabled');
+	});
+</script>
+
+@if(resultsAvailable){
+<script>
+	$(function() {
+		 window.location.hash = "visualization";
+		
+		showTimeSeriesChart(null, "emotion");
+		 var chart = $('#container').highcharts();
+		 chart.showLoading();
+		 jsRoutes.controllers.EmotionMeasurementController.handlePlot('em-val').ajax({
+		        success: function(data) {
+		        	$('#em-val').data("model", data);
+		        	chart = showTimeSeriesChart(data, "emotion");
+		        },
+		        error: function() {
+		          alert("Error!");
+		        }
+		      });
+	});
+</script>
+}
