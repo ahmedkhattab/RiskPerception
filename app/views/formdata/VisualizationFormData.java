@@ -1,6 +1,7 @@
 package views.formdata;
 
 import play.data.validation.ValidationError;
+import play.data.validation.Constraints.Required;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,10 @@ public class VisualizationFormData {
 
   
   public List<String> preprocessing = new ArrayList<>(); 
+  @Required(message = "")
+  public String fromDate = "";
+  @Required(message = "")
+  public String toDate = "";
   
   /** Required for form instantiation. */
   public VisualizationFormData() {

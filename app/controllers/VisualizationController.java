@@ -1,35 +1,16 @@
 package controllers;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.UUID;
 
+import org.jongo.MongoCursor;
+
 import models.PreprocessingChoice;
+import models.Tweet;
 import play.data.Form;
-import play.libs.Json;
-import play.cache.*;
 import play.mvc.Controller;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
-import tools.StringRemover;
-import tools.TextStandardizer;
-import tools.Utils;
-import tools.DataTypes.TimedMessage;
-import views.formdata.EmotionFormData;
 import views.formdata.VisualizationFormData;
 import views.html.visualization;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import controllers.managers.DataManager;
-import controllers.managers.EmotionMeasurementManager;
 
 /**
  * The controller for the single page of this application.
@@ -71,5 +52,10 @@ public class VisualizationController extends Controller {
 	public static Result postVisualization() {
 		return TODO;
 	}
-
+	
+	public static Result fetch(String fromDate, String toDate) {
+		MongoCursor<Tweet> result = Tweet.findByDate(fromDate,toDate);
+		System.out.println(result.count());
+		return TODO;
+	}
 }

@@ -257,6 +257,7 @@ public class MainController extends Controller {
 						.handleClassificationUpload(),
 				routes.javascript.ClassificationController.handlePlot(),
 				routes.javascript.EmotionMeasurementController.handlePlot(),
-				routes.javascript.MainController.tagcloud()));
+				routes.javascript.MainController.tagcloud(),
+				routes.javascript.VisualizationController.fetch()));
 	}
 }

@@ -48,7 +48,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 		</div>
 		}
 
-		<div class=" col-sm-offset-1">
+		<div class="col-sm-offset-1">
 @if(dataAvailable){
 			<div class="form-group">
 				<label class="col-sm-4 control-label" for="datasource-select">Select
@@ -60,14 +60,43 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 							data</option> 
 						<option id="fromFile" value="fromFile">Load data from
 							file</option>
+						<option id="fromStore" value="fromStore">Use data from our store</option>
 					</select>
 				</div>
 			</div>
 }
-			<!-- Uploading Panel -->
-			<div id="uploading-panel" class="panel panel-default "
+
+			<!-- Mongo Store Panel -->
+			<div id="store-panel" class="datasource panel panel-default "
 				style="display: none;">
-				<div class="panel-heading" role="tab" id="headingOne">
+				<div class="panel-heading" role="tab">
+					<h4 class="panel-title">Load Data From Our Store</h4>
+				</div>
+				<div class="panel-body">
+					@datepicker(visualizationForm("fromDate"),
+						  label = "From",
+						  placeholder = "dd.mm.yyyy",
+						  help = "")
+					
+					@datepicker(visualizationForm("toDate"),
+						  label = "To",
+						  placeholder = "dd.mm.yyyy",
+						  help = "")
+	
+					<div style="margin-top: 55px;">
+					  <button id="store-fetch" type="button" value="fetch"
+					class="btn btn-success">Fetch</button>
+					</div>
+				</div>
+				
+				
+			</div>
+			
+			
+			<!-- Uploading Panel -->
+			<div id="uploading-panel" class="datasource panel panel-default "
+				style="display: none;">
+				<div class="panel-heading" role="tab">
 					<h4 class="panel-title">Load Data From File</h4>
 				</div>
 				<div class="panel-body">
@@ -231,10 +260,15 @@ if ($("#datasource-select").length){
 		$("#datasource-select option:selected").each(function() {
 			if ($(this).attr("value") == "fromQuery") {
 				$("#uploading-panel").hide();
-
+				$("#store-panel").hide();
 			}
 			if ($(this).attr("value") == "fromFile") {
 				$("#uploading-panel").show();
+				$("#store-panel").hide();
+			}
+			if ($(this).attr("value") == "fromStore") {
+				$("#uploading-panel").hide();
+				$("#store-panel").show();
 			}
 		});
 	}).change();
@@ -391,6 +425,19 @@ else
 			}
 		}
 	});
+	$('#store-fetch').click(function(e) {
+		var fromDate = $('#fromDate').val();
+		var toDate = $('#toDate').val();
+		 jsRoutes.controllers.VisualizationController.fetch(fromDate, toDate).ajax({
+		        success: function(data) {
+		        	
+		        },
+		        error: function() {
+		          alert("Error!");
+		        }
+		      });
+		
+	});
 	$(function() {
 
 		// Change this to the location of your server-side upload handler:
@@ -472,8 +519,7 @@ else
 @if(resultsAvailable){
 <script>
 	$(function() {
-		 window.location.hash = "visualization";
-		
+		window.location.hash = "visualization";
 		showTimeSeriesChart(null, "emotion");
 		 var chart = $('#container').highcharts();
 		 chart.showLoading();

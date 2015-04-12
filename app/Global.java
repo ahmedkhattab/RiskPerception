@@ -66,7 +66,7 @@ public class Global extends GlobalSettings {
 			classificationManager.trainClassifier();
 			Utils.saveObject("default_class", classificationManager);
 		}
-		runJob();
+		//runJob();
 	}
 
 	private void runJob() {
@@ -86,26 +86,22 @@ public class Global extends GlobalSettings {
 		} else {
 			nextRun = c.getTime();
 		}
-		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000; // To
-																		// convert
-																		// milliseconds
-																	// to
-																		// seconds.
+		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000; 
 		Runnable showTime = new Runnable() {
 			@Override
 			public void run() {
 				try {
-					System.out.println("running job @:"+ new Date().toString());
+					Logger.info("running job @:"+ new Date().toString());
 					JsonNode root = Json.parse(new FileInputStream("private/keywords.json"));
 	
-					  ObjectMapper objectMapper = new ObjectMapper();
+					ObjectMapper objectMapper = new ObjectMapper();
 
-					    ArrayList<String> keywords = objectMapper.readValue(
+				    ArrayList<String> keywords = objectMapper.readValue(
 					    		root.get("keywords").toString(),
 					            objectMapper.getTypeFactory().constructCollectionType(
 					            		ArrayList.class, String.class));
 					String query = StringUtils.join(keywords, " OR "); 
-					System.out.println(query);
+					Logger.info(query);
 					/*for(JsonNode keyword : keywords){
 						query += keyword.toString()+" OR ";
 					}*/
@@ -142,6 +138,7 @@ public class Global extends GlobalSettings {
 	@Override
 	public void onStop(Application app) {
 		Logger.info("Application shutdown...");
-		job.cancel();
+		if(job != null)
+			job.cancel();
 	}
 }

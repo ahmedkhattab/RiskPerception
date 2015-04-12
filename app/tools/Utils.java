@@ -36,7 +36,6 @@ public class Utils {
 			dateObj = new SimpleDateFormat("dd.MM.yyyy").parse(date);
 			return new SimpleDateFormat("yyyy-MM-dd").format(dateObj);
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
