@@ -34,6 +34,7 @@ import org.jfree.data.time.TimeSeriesDataItem;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 
+import play.Play;
 import play.libs.Json;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -99,11 +100,11 @@ public class EmotionMeasurementManager implements Serializable {
 	public boolean setDefaultEmotionTableFile(int fileToUse)
 			throws NumberFormatException, IOException {
 		if (fileToUse == EmotionMeasurementManager.USE_ANEW) {
-			emotionTableFile = new File("emotion_datasets/ANEW_Dataset.csv");
+			emotionTableFile = Play.application().getFile("private/datasets/ANEW_Dataset.csv");
 			setEmotionValueFile(fileToUse);
 			return true;
 		} else if (fileToUse == EmotionMeasurementManager.USE_WARRINER) {
-			emotionTableFile = new File("emotion_datasets/WARRINER_Dataset.csv");
+			emotionTableFile = Play.application().getFile("private/datasets/WARRINER_Dataset.csv");
 			setEmotionValueFile(fileToUse);
 			return true;
 		}

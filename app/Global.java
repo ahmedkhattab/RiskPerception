@@ -2,8 +2,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,40 +9,31 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+
+import play.Application;
+import play.GlobalSettings;
+import play.Logger;
+import play.Play;
+import play.libs.Akka;
+import play.libs.Json;
+import scala.concurrent.duration.FiniteDuration;
+import tools.Utils;
+import uk.co.panaxiom.playjongo.PlayJongo;
 import akka.actor.Cancellable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Iterables;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.InsertOptions;
-import com.mongodb.MongoClient;
-import com.mongodb.WriteConcern;
 
 import controllers.managers.ClassificationManager;
 import controllers.managers.ClassifierCollection;
 import controllers.managers.DataManager;
-import play.*;
-import play.libs.Akka;
-import play.libs.Json;
-import scala.concurrent.duration.FiniteDuration;
-import tools.CustomMapper;
-import tools.MongoFactory;
-import tools.Utils;
-import twitter4j.Status;
-import uk.co.panaxiom.playjongo.MongoClientFactory;
-import uk.co.panaxiom.playjongo.PlayJongo;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jongo.*;
 
 public class Global extends GlobalSettings {
-	
+
 	private Cancellable job;
 	@Override
 	public void onStart(Application app) {
@@ -52,8 +41,7 @@ public class Global extends GlobalSettings {
 			ClassificationManager classificationManager = new ClassificationManager();
 			classificationManager
 					.setClassifier(ClassifierCollection.SVM_CLASSIFIER);
-			File trainingDataFile = new File(
-					"public/datasets/Datensatz 1_v1.csv");
+			File trainingDataFile = Play.application().getFile("private/datasets/Datensatz 1_v1.csv");
 			try {
 				classificationManager.setData(trainingDataFile, 0,
 						ClassificationManager.SET_TRAINING_DATA, ";", true);
@@ -66,7 +54,7 @@ public class Global extends GlobalSettings {
 			classificationManager.trainClassifier();
 			Utils.saveObject("default_class", classificationManager);
 		}
-		//runJob();
+		runJob();
 	}
 
 	private void runJob() {
@@ -92,7 +80,7 @@ public class Global extends GlobalSettings {
 			public void run() {
 				try {
 					Logger.info("running job @:"+ new Date().toString());
-					JsonNode root = Json.parse(new FileInputStream("private/keywords.json"));
+					JsonNode root = Json.parse(new FileInputStream(Play.application().getFile("private/keywords.json")));
 	
 					ObjectMapper objectMapper = new ObjectMapper();
 

@@ -10,12 +10,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import play.Logger;
+import play.Play;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Utils {
-	public static final String DATA_STORE = "datastore";
+	public static final String DATA_STORE = Play.application().path().getPath()+"/private/datastore";
 
 	public static boolean isNumeric(String str)  
 	{  
@@ -61,7 +64,8 @@ public class Utils {
 			objectInputStream.close();
 			return object;
 		} catch (IOException e) {
-			System.out.println(key + " File was not found");
+			System.out.println(key + " File was not found at " + DATA_STORE+"/"+key );
+			Logger.info(key + " File was not found at " + DATA_STORE+"/"+key );
 			return null;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
