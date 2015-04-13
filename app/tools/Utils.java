@@ -32,6 +32,18 @@ public class Utils {
 	  }  
 	  return true;  
 	}
+	public static Date formatTwitterDate(String date)
+	{
+		String TWITTER="EEE MMM dd HH:mm:ss ZZZZZ yyyy";
+		SimpleDateFormat sf = new SimpleDateFormat(TWITTER);
+		sf.setLenient(true);
+		try {
+			return sf.parse(date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	public static String formatDate(String date)
 	{
 		Date dateObj;

@@ -1,10 +1,13 @@
 package controllers.dataLayer.dataCollectors;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
+import tools.Utils;
 import tools.DataTypes.TimedMessage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -149,10 +152,10 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 				// Send query and add text to list
 				result = twitter.search(query);
 				for (Status tweet : result.getTweets()) {
-					
 					String jsonTweet = TwitterObjectFactory.getRawJSON(tweet);
-					  DBObject doc = (DBObject)JSON.parse(jsonTweet);
-					  doc.put("_id", doc.get("id_str"));
+					DBObject doc = (DBObject)JSON.parse(jsonTweet);
+					doc.put("created_at", Utils.formatTwitterDate(doc.get("created_at").toString()));
+					doc.put("_id", doc.get("id_str"));
 					tweetList.add(doc);
 				}
 				// Jump to next page
@@ -252,4 +255,5 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 	public static String getStatus() {
 		return status;
 	}
+	
 }
