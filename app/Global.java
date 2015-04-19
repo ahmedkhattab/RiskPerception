@@ -105,6 +105,7 @@ public class Global extends GlobalSettings {
 							sdfDate.format(current),
 							"en");
 					ArrayList<DBObject> tweets = dataManager.getRawData();
+					Logger.info("inserting: "+ tweets.size() + " tweets");
 					DBCollection tweetsCollection = PlayJongo.getCollection("tweets").getDBCollection();
 					tweetsCollection.insert(tweets, new InsertOptions().continueOnError(true));				
 					

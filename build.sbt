@@ -20,7 +20,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jquery-ui" % "1.11.1",
   "org.webjars" % "jquery-file-upload" % "9.8.0",
   "org.webjars" % "highcharts" % "4.0.4",
-  "de.undercouch" % "bson4jackson" % "2.4.0"  )
+  "de.undercouch" % "bson4jackson" % "2.4.0",
+  "org.webjars" % "visjs" % "3.11.0"  )
 
 resolvers ++= Seq(
   "webjars" at "http://webjars.github.com/m2"

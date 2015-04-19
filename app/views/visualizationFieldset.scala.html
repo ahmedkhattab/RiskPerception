@@ -49,22 +49,23 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 		}
 
 		<div class="col-sm-offset-1">
-@if(dataAvailable){
+
 			<div class="form-group">
 				<label class="col-sm-4 control-label" for="datasource-select">Select
 					datasource:</label>
 				<div class="col-sm-4">
 					<select class="form-control" id="datasource-select"
 						name="datasource-select"> 
+						@if(dataAvailable){
 						<option id="fromQuery" value="fromQuery">Use last query
 							data</option> 
+							}
 						<option id="fromFile" value="fromFile">Load data from
 							file</option>
 						<option id="fromStore" value="fromStore">Use data from our store</option>
 					</select>
 				</div>
 			</div>
-}
 
 			<!-- Mongo Store Panel -->
 			<div id="store-panel" class="datasource panel panel-default "

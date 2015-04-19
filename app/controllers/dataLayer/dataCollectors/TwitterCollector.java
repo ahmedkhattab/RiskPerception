@@ -179,7 +179,7 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 	 * 
 	 * @return Twitter-Object
 	 */
-	private static Twitter getTwitter() {
+	public static Twitter getTwitter() {
 		// Used code example: http://twitter4j.org/en/code-examples.html
 		ConfigurationBuilder cb = new ConfigurationBuilder();
 		cb.setOAuthConsumerKey(consumerKey);

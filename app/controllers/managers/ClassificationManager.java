@@ -60,6 +60,7 @@ import tools.InputOptionCollection;
 import tools.DataTypes.ClassCounter;
 import tools.DataTypes.TimedClassifiedData;
 import tools.DataTypes.TimedMessage;
+import twitter4j.Status;
 
 /**
  * This class is used to save the datasets necessary for classification and to
@@ -91,6 +92,7 @@ public class ClassificationManager implements Serializable{
 	//private ArrayList<Date> datesByIndexFromClassification;
 	//private ArrayList<Date> datesByIndexFromTrain;
 	private ArrayList<Date> datesByIndex;
+	private ArrayList<Long> tweetIdByIndex;
 	private Dataset classificationData;
 	private Dataset classifiedData;
 	private ArrayList<String> trainedWordList;
@@ -168,6 +170,39 @@ public class ClassificationManager implements Serializable{
 			}
 			return false;
 		}
+	}
+	
+	public boolean setRawTweets(Iterable<Status> tweets) throws IOException {
+		
+		String instanceTitle = "";
+		ArrayList<String> wordList = new ArrayList<String>();
+		wordList = getWordsList(null, SET_CLASSIFICATION_DATA, false);
+		instanceTitle = this.dummyClass;
+		// initialize reader and writer
+		File resultFile = getFile(true);
+		PrintWriter writer = new PrintWriter(resultFile);
+		// read file
+		String resultLine;
+		ArrayList<Long> tweetIdList = new ArrayList<Long>();
+
+		for (Status status : tweets) {
+			resultLine = instanceTitle;
+			// create line in sparse format
+			String[] words = new String[1];
+			String messageText = status.getText();
+			words = messageText.split(" ");
+			ArrayList<ClassCounter> wordCounts = getWordCounterList(wordList,
+					words);
+			resultLine = resultLine + createSparseLine(wordList, wordCounts);
+			tweetIdList.add(status.getId());
+			writer.println(resultLine);
+		}
+		// Close method
+		writer.flush();
+		writer.close();
+		setSparseData(resultFile, SET_CLASSIFICATION_DATA);
+		tweetIdByIndex = tweetIdList;
+		return true;		
 	}
 
 	/**
@@ -1011,44 +1046,6 @@ public class ClassificationManager implements Serializable{
 	 * @throws IOException
 	 *             Problem while reading from file.
 	 */
-	/*
-	private ArrayList<String> getWordList(File dataFile,
-			boolean addBehindMessage, PreprocessorForm preprocessor)
-			throws IOException {
-		// Used code example: http://www.javaschubla.de/2007/javaerst0250.html
-		FileReader fileReader = new FileReader(dataFile);
-		BufferedReader reader = new BufferedReader(fileReader);
-		ArrayList<String> wordList = new ArrayList<String>();
-		String line = reader.readLine();
-		while (line != null) {
-			String[] splitMessage = line.split(";");
-			String[] wordArray = preprocessor.getPreproccedString(
-					splitMessage[2]).split(" ");
-			if (addBehindMessage) {
-				wordArray = preprocessor.getPreproccedString(
-						extractMessage(splitMessage, 2, true)).split(" ");
-			}
-
-			for (int i = 0; i < wordArray.length; i++) {
-				if (!wordList.contains(wordArray[i])) {
-					wordList.add(wordArray[i]);
-				}
-			}
-			line = reader.readLine();
-		}
-		reader.close();
-		return wordList;
-	}
-	*/
-	/**
-	 * This method gets a File and extracts all words without duplicates.
-	 * 
-	 * @param reader
-	 *            The already (with a file) initialized BufferedReader.
-	 * @return A list of all words from the BufferedReader (without duplicates).
-	 * @throws IOException
-	 *             Problem while reading from file.
-	 */
 	private ArrayList<String> getWordList(File dataFile,
 			boolean addBehindMessage) throws IOException {
 		// Used code example: http://www.javaschubla.de/2007/javaerst0250.html
@@ -1229,17 +1226,14 @@ public class ClassificationManager implements Serializable{
 		return currClass;
 	}
 	
-	private int toInt(String className){
-		switch(className){
-		case "neutral": return 1;
-		case "positiv": return 2;
-		case "negativ": return 0;
-		default:
-			return 0;
-		
+	public Map<Long, String> getClassifiedDataMap() {
+		Map<Long, String> results = new HashMap<Long,String>();
+		for (int i = 0; i < classifiedData.size(); i++) {
+			results.put(tweetIdByIndex.get(i), classifiedData.get(i).classValue().toString());
 		}
+		return results;
 	}
-
+	
 	public File saveResultsToFile() throws FileNotFoundException {
 		File resultsFile = new File("Classified_Data.csv");
 		PrintWriter writer = new PrintWriter(resultsFile);
