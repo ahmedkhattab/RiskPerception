@@ -11,20 +11,19 @@ import org.jongo.MongoCursor;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.DBObject;
 
 import controllers.managers.ClassificationManager;
 import models.ClassifiedStatus;
 import models.PreprocessingChoice;
 import models.Tweet;
+import play.Logger;
 import play.data.Form;
 import play.libs.Json;
 import play.mvc.Controller;
+import twitter4j.Status;
 import play.mvc.Result;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
 import tools.Utils;
-import twitter4j.TwitterObjectFactory;
+import twitter4j.User;
 import views.formdata.VisualizationFormData;
 import views.html.visualization;
 
@@ -85,7 +84,6 @@ public class VisualizationController extends Controller {
 
 		if (!classificationManager.classifyData(false))
 			return null;
-		response().setContentType("application/json");
 		classificationManager.reset();
 		Utils.saveObject(session("ID") + "_class_plot", classificationManager);
 		Map<Long, String> classifiedData = classificationManager
@@ -100,16 +98,39 @@ public class VisualizationController extends Controller {
 	public static Result fetch(String fromDate, String toDate) {
 		MongoCursor<twitter4j.Status> tweets = Tweet.findByDate(fromDate,
 				toDate);
+		Logger.info("classifying "+tweets.count()+" tweets");
 		Iterable<ClassifiedStatus> classifiedTweets = classify(tweets);
-		ObjectNode jsonResult = Json.newObject();
-		ArrayNode dataArray = jsonResult.putArray("tweets");
+		ObjectNode users = Json.newObject();
+		
 		for (ClassifiedStatus classifiedStatus : classifiedTweets) {
-			dataArray.add(classifiedStatus.getClassOfstatus());
-			dataArray.add(TwitterObjectFactory.getRawJSON(classifiedStatus.getStatus()));
+			twitter4j.Status thisStatus = classifiedStatus.getStatus();
+			User thisUser = thisStatus.getUser();
+			
+			if(!thisStatus.isRetweet() && !users.has(thisUser.getName()))
+			{
+				ObjectNode user = users.putObject(thisUser.getName());
+				user.put("popularity",thisUser.getFollowersCount());
+				user.put("class", classifiedStatus.getClassOfstatus());
+				user.putArray("retweetedBy");
+			}
+			if(thisStatus.isRetweet())
+			{
+				User origin = thisStatus.getRetweetedStatus().getUser();
+				if(users.get(origin.getName()) == null)
+					{
+						ObjectNode user = users.putObject(origin.getName());
+						user.put("popularity",origin.getFollowersCount());
+						user.put("class", classifiedStatus.getClassOfstatus());
+						user.putArray("retweetedBy").add(thisUser.getName());
+						continue;
+					}
+				ArrayNode edges = (ArrayNode)users.get(origin.getName()).get("retweetedBy");
+				edges.add(thisUser.getName());
+			}
 		}
 
 		response().setContentType("application/json");
-		return ok(jsonResult);
+		return ok(users);
 
 	}
 }

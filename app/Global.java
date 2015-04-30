@@ -78,45 +78,62 @@ public class Global extends GlobalSettings {
 		Runnable showTime = new Runnable() {
 			@Override
 			public void run() {
-				try {
+			
 					Logger.info("running job @:"+ new Date().toString());
-					JsonNode root = Json.parse(new FileInputStream(Play.application().getFile("private/keywords.json")));
-	
-					ObjectMapper objectMapper = new ObjectMapper();
+					 File dir = Play.application().getFile("private/tracking");
+					  File[] directoryListing = dir.listFiles();
+					  if (directoryListing != null) {
+					    for (File child : directoryListing) {
+					    	String projectName = child.getName();
+					    	int pos = projectName.lastIndexOf(".");
+					    	if (pos > 0) {
+					    		projectName = projectName.substring(0, pos);
+					    	}
+					    	Logger.info("querying for project: "+projectName);
+					    	try {
+					    	JsonNode root = Json.parse(new FileInputStream(child));
+					    	ObjectMapper objectMapper = new ObjectMapper();
 
-				    ArrayList<String> keywords = objectMapper.readValue(
-					    		root.get("keywords").toString(),
-					            objectMapper.getTypeFactory().constructCollectionType(
-					            		ArrayList.class, String.class));
-					String query = StringUtils.join(keywords, " OR "); 
-					Logger.info(query);
-					/*for(JsonNode keyword : keywords){
-						query += keyword.toString()+" OR ";
-					}*/
-					DataManager dataManager = new DataManager();
-					dataManager.setTwitterMaxPages(100);
-					Date current = new Date();
-					SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
-					Calendar now = Calendar.getInstance();
-					now.setTime(current);
-					now.add(Calendar.DAY_OF_WEEK, -7);
-					dataManager.collectRawData(query,
-							sdfDate.format(now.getTime()),
-							sdfDate.format(current),
-							"en");
-					ArrayList<DBObject> tweets = dataManager.getRawData();
-					Logger.info("inserting: "+ tweets.size() + " tweets");
-					DBCollection tweetsCollection = PlayJongo.getCollection("tweets").getDBCollection();
-					tweetsCollection.insert(tweets, new InsertOptions().continueOnError(true));				
-					
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-				} 
+						    ArrayList<String> keywords = objectMapper.readValue(
+							    		root.get("keywords").toString(),
+							            objectMapper.getTypeFactory().constructCollectionType(
+							            		ArrayList.class, String.class));
+						    if(keywords.size() == 0)
+						    { Logger.info("skipping");
+						    	continue;}
+							String query = StringUtils.join(keywords, " OR "); 
+							Logger.info(query);
+							/*for(JsonNode keyword : keywords){
+								query += keyword.toString()+" OR ";
+							}*/
+							DataManager dataManager = new DataManager();
+							dataManager.setTwitterMaxPages(100);
+							Date current = new Date();
+							SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
+							Calendar now = Calendar.getInstance();
+							now.setTime(current);
+							now.add(Calendar.DAY_OF_WEEK, -7);
+							dataManager.collectRawData(query,
+									sdfDate.format(now.getTime()),
+									sdfDate.format(current),
+									"en");
+							ArrayList<DBObject> tweets = dataManager.getRawData();
+							Logger.info("inserting: "+ tweets.size() + " tweets");
+							DBCollection tweetsCollection = PlayJongo.getCollection(projectName).getDBCollection();
+							tweetsCollection.insert(tweets, new InsertOptions().continueOnError(true));				
+							
+						} catch (FileNotFoundException e) {
+							Logger.error(e.getMessage());
+						} catch (Exception e) {
+							Logger.error(e.getMessage());
+						} 
+					    }
+					  } else {
+						  Logger.error("no tracking files found");
+					}
 			}
 		};
-		FiniteDuration delay = FiniteDuration.create(delayInSeconds, TimeUnit.SECONDS);
+		FiniteDuration delay = FiniteDuration.create(0, TimeUnit.SECONDS);
 		FiniteDuration frequency = FiniteDuration.create(1, TimeUnit.DAYS);
 		job = Akka.system()
 				.scheduler()

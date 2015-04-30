@@ -1,10 +1,14 @@
-@(adminForm: Form[views.formdata.AdminFormData]) 
+@(adminForm: Form[views.formdata.AdminFormData],
+createProjectForm: Form[views.formdata.CreateProjectFormData],
+  trackingMap: Map[String, Boolean]) 
 
 @import helper._ 
 @import bootstrap3.textarea
 @import bootstrap3.text
+@import bootstrap3.select
 
 @import controllers.routes.javascript._ 
+
 
 @main("Admin") {
 <div class="container">
@@ -26,13 +30,23 @@
 		@form(routes.MainController.postAdmin(), 'class -> "form-horizontal") {
 		<fieldset>
 			<div class="col-sm-6">
+				<div class="form-group">
+			<button type="button" data-toggle="modal" data-target="#new_project"
+					class="btn btn-default">New project...</button>	
+					</div>
+				 @select(adminForm("projectName"),
+		          label = "Tracking Projects",
+		          optionMap = trackingMap,
+		          isMultiple = false,
+		          help = "")
+    	
 			 @text(adminForm("token"),
 			        label = "Security Token",
 			        placeholder = "",
 			        help = "",
 			        fieldType = "password")
 			        
-			@textarea(adminForm("file"), label = "Keywords File")
+			@textarea(adminForm("keywordsFile"), label = "Keywords File")
 			</div>
 			
 			 <div class="form-group">
@@ -46,5 +60,85 @@
 			</div>
 </div>
 
+<div class="modal fade" id="new_project" tabindex="-1" role="dialog"
+			aria-labelledby="myModalLabel" aria-hidden="true">
+			<div class="modal-dialog" style="width: 30%;">
+				<div class="modal-content">
+					<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" style="margin-top: -9px;">
+							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+						</button>
+					</div>
+					<div class="modal-body">
+							
+						<div id="ajax-error" class="text-danger" style="display : none; margin-bottom: 19px;">
+							</div>
+						<div class="form-group">
+							<label class="col-sm-5 control-label">Project Name</label>
+							<div class="col-sm-2" style="width: 130px;">
+								<input type="text" class="form-control input-sm"
+									name="new_project_name" value=";" placeholder="" /> <span
+									class="help-block"></span>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label class="col-sm-5 control-label">Security Token</label>
+							<div class="col-sm-2" style="width: 130px;">
+								<input type="password" class="form-control input-sm"
+									name="security_token" value=";" placeholder="" /> <span
+									class="help-block"></span>
+							</div>
+						</div>
+					     
+						<button type="button" class="btn btn-primary pull-right"
+							>Create</button>
+				
+						<div class="clearfix"></div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+<script>
+$('#new_project').on('shown.bs.modal', function(){   
+	$('#ajax-error').hide();
+});
+$('#new_project .btn-primary').click(function() {
+	var name = $('#new_project input[name=new_project_name]').val();
+	var t = $('#new_project input[name=security_token]').val();
+	var d = { projectName : name, token :  t};
+	jsRoutes.controllers.MainController.adminCreateProject().ajax({
+		data: JSON.stringify(d),
+		headers: {
+		    "Content-Type": "application/json"
+		  },
+		method : "POST",
+		success : function(data) {
+			 alert(data);
+			 window.location.reload();
+		},
+		error : function(data) {
+			$('#ajax-error').text(data.responseText);
+			$('#ajax-error').show();
+		}
+	});
+});
+$('#projectName').change(function() {
+	var projectName = $('#projectName option:selected').text();
+	if(projectName)
+		{
+	jsRoutes.controllers.MainController.keywords(projectName).ajax({
+		success : function(data) {
+			$('#keywordsFile').text(data);
+		},
+		error : function() {
+			alert("Error!")
+		}
+	});
+	}
+});
+
+</script>
 
 }

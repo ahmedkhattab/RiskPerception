@@ -30,7 +30,7 @@ import uk.co.panaxiom.playjongo.PlayJongo;
 public class Tweet{
 
     public static MongoCollection tweets() {
-        return PlayJongo.getCollection("tweets");
+        return PlayJongo.getCollection("autonomous_driving");
     }
 
     @JsonProperty("_id")

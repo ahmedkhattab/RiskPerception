@@ -5,6 +5,7 @@
 # Home page
 GET     /                           controllers.MainController.index()
 GET		/admin						controllers.MainController.adminPage()
+GET		/admin/keywords/:projectName controllers.MainController.keywords(projectName)
 GET     /tagcloud         			controllers.MainController.tagcloud()
 GET     /collect                    controllers.MainController.index()
 GET     /collect/tagcloud           controllers.MainController.tagcloud()
@@ -17,6 +18,7 @@ GET     /classification/plot/:plotType 	controllers.ClassificationController.han
 
 POST    /                           controllers.MainController.postIndex()
 POST    /admin                      controllers.MainController.postAdmin()
+POST    /admin/createProject        controllers.MainController.adminCreateProject()
 POST    /emotion                    controllers.EmotionMeasurementController.postEmotion()
 POST    /visualization              controllers.VisualizationController.postVisualization()
 POST    /save/:dataType             controllers.MainController.saveData(dataType)

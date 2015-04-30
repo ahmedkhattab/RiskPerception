@@ -22,6 +22,7 @@ import play.mvc.Result;
 import tools.TextStandardizer;
 import tools.Utils;
 import views.formdata.AdminFormData;
+import views.formdata.CreateProjectFormData;
 import views.formdata.EmotionFormData;
 import views.formdata.QueryFormData;
 import views.html.emotion;
@@ -49,7 +50,12 @@ public class MainController extends Controller {
 		AdminFormData queryData = new AdminFormData();
 		Form<AdminFormData> formData = Form.form(AdminFormData.class).fill(
 				queryData);
-		return ok(admin.render(formData));
+		return ok(admin.render(formData, queryData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+	}
+	
+	public static Result keywords(String projectName) {
+		response().setContentType("text/plain");
+		return ok(AdminFormData.getKeywords(projectName));
 	}
 
 	/**
@@ -127,7 +133,40 @@ public class MainController extends Controller {
 		}
 		return TODO;
 	}
+	public static Result adminCreateProject() {
+		String token = request().body().asJson().get("token").asText();
+		String projectName = request().body().asJson().get("projectName").asText();
+		if (token.equals("") || projectName.equals("")) {
+			response().setContentType("text/plain");
+			return internalServerError("missing fields required !");
+		} else {
+			if (token.equals("12345678")) {
+				try {
+					
+					FileWriter file;
+					file = new FileWriter(Play.application().getFile("private/tracking/"+projectName+".json"));
+					file.write("{\"keywords\":[]}");
+					file.flush();
+					file.close();
+					response().setContentType("text/plain");
 
+					return ok("New project created successfully !");
+
+				} catch (IOException e) {
+					response().setContentType("text/plain");
+
+					return internalServerError("Could not create project, please try again");
+				}
+			}
+			else
+			{
+				response().setContentType("text/plain");
+
+				return internalServerError("Invalid token");
+			}
+
+		}
+	}
 	public static Result postAdmin() {
 		Form<AdminFormData> formData = Form.form(AdminFormData.class)
 				.bindFromRequest();
@@ -136,22 +175,22 @@ public class MainController extends Controller {
 			Form<AdminFormData> newData = Form.form(AdminFormData.class)
 					.fill(adminData);
 			flash("error", "Missing fields required !");
-			return badRequest(admin.render(newData));
+			return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
 		} else {
 			AdminFormData data = formData.get();
 			if (data.token.equals("12345678")) {
 				try {
-					if(Utils.isValidJSON(data.file))
+					if(Utils.isValidJSON(data.keywordsFile))
 					{
 			
 					FileWriter file;
-					file = new FileWriter(Play.application().getFile("private/keywords.json"));
-					file.write(data.file);
+					file = new FileWriter(Play.application().getFile("private/tracking/"+data.projectName+".json"));
+					file.write(data.keywordsFile);
 					file.flush();
 					file.close();
 					flash("success",
 							"Keywords file updated successfully !");
-					return ok(admin.render(formData));
+					return ok(admin.render(formData, data.getSecondaryForm(), AdminFormData.makeTrackingMap()));
 					}
 					else
 					{
@@ -160,7 +199,7 @@ public class MainController extends Controller {
 								.fill(adminData);
 						flash("error",
 								"Error parsing json, please check for syntax errors !");
-						return badRequest(admin.render(newData));					
+						return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));					
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -168,7 +207,7 @@ public class MainController extends Controller {
 					Form<AdminFormData> newData = Form.form(AdminFormData.class)
 							.fill(adminData);
 					flash("error", "Error updating keywords file !");
-					return badRequest(admin.render(newData));
+					return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
 				}
 			}
 			else
@@ -177,7 +216,7 @@ public class MainController extends Controller {
 				AdminFormData adminData = new AdminFormData();
 				Form<AdminFormData> newData = Form.form(AdminFormData.class)
 						.fill(adminData);
-				return badRequest(admin.render(newData));
+				return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
 			}
 
 		}
@@ -259,6 +298,8 @@ public class MainController extends Controller {
 				routes.javascript.ClassificationController.handlePlot(),
 				routes.javascript.EmotionMeasurementController.handlePlot(),
 				routes.javascript.MainController.tagcloud(),
+				routes.javascript.MainController.keywords(),
+				routes.javascript.MainController.adminCreateProject(),
 				routes.javascript.VisualizationController.fetch()));
 	}
 }
