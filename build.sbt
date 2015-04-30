@@ -42,3 +42,7 @@ mappings in Universal ++=
 mappings in Universal ++=
 (baseDirectory.value / "private" / "datasets" * "*" get) map
     (x => x -> ("private/datasets/" + x.getName))
+
+mappings in Universal ++=
+(baseDirectory.value / "private" / "tracking" * "*" get) map
+    (x => x -> ("private/tracking/" + x.getName))
