@@ -144,8 +144,7 @@ public class MainController extends Controller {
 				try {
 					
 					FileWriter file;
-					file = new FileWriter(Play.application().getFile("private/tracking/"+projectName+".json"));
-					file.write("{\"keywords\":[]}");
+					file = new FileWriter(Play.application().getFile("private/tracking/"+projectName));
 					file.flush();
 					file.close();
 					response().setContentType("text/plain");
@@ -180,17 +179,19 @@ public class MainController extends Controller {
 			AdminFormData data = formData.get();
 			if (data.token.equals("12345678")) {
 				try {
-					if(Utils.isValidJSON(data.keywordsFile))
+					/*if(Utils.isValidJSON(data.keywordsFile))
 					{
+					*/
 			
 					FileWriter file;
-					file = new FileWriter(Play.application().getFile("private/tracking/"+data.projectName+".json"));
+					file = new FileWriter(Play.application().getFile("private/tracking/"+data.projectName));
 					file.write(data.keywordsFile);
 					file.flush();
 					file.close();
 					flash("success",
 							"Keywords file updated successfully !");
 					return ok(admin.render(formData, data.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+					/*
 					}
 					else
 					{
@@ -201,6 +202,7 @@ public class MainController extends Controller {
 								"Error parsing json, please check for syntax errors !");
 						return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));					
 					}
+					*/
 				} catch (IOException e) {
 					e.printStackTrace();
 					AdminFormData adminData = new AdminFormData();

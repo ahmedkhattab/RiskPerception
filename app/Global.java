@@ -1,7 +1,9 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.InsertOptions;
+import com.mongodb.WriteResult;
 
 import controllers.managers.ClassificationManager;
 import controllers.managers.ClassifierCollection;
@@ -35,13 +38,15 @@ import controllers.managers.DataManager;
 public class Global extends GlobalSettings {
 
 	private Cancellable job;
+
 	@Override
 	public void onStart(Application app) {
 		if (Utils.loadObject("default_class") == null) {
 			ClassificationManager classificationManager = new ClassificationManager();
 			classificationManager
 					.setClassifier(ClassifierCollection.SVM_CLASSIFIER);
-			File trainingDataFile = Play.application().getFile("private/datasets/Datensatz 1_v1.csv");
+			File trainingDataFile = Play.application().getFile(
+					"private/datasets/Datensatz 1_v1.csv");
 			try {
 				classificationManager.setData(trainingDataFile, 0,
 						ClassificationManager.SET_TRAINING_DATA, ";", true);
@@ -74,68 +79,79 @@ public class Global extends GlobalSettings {
 		} else {
 			nextRun = c.getTime();
 		}
-		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000; 
+		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000;
 		Runnable showTime = new Runnable() {
 			@Override
 			public void run() {
-			
-					Logger.info("running job @:"+ new Date().toString());
-					 File dir = Play.application().getFile("private/tracking");
-					  File[] directoryListing = dir.listFiles();
-					  if (directoryListing != null) {
-					    for (File child : directoryListing) {
-					    	String projectName = child.getName();
-					    	int pos = projectName.lastIndexOf(".");
-					    	if (pos > 0) {
-					    		projectName = projectName.substring(0, pos);
-					    	}
-					    	Logger.info("querying for project: "+projectName);
-					    	try {
-					    	JsonNode root = Json.parse(new FileInputStream(child));
-					    	ObjectMapper objectMapper = new ObjectMapper();
 
-						    ArrayList<String> keywords = objectMapper.readValue(
-							    		root.get("keywords").toString(),
-							            objectMapper.getTypeFactory().constructCollectionType(
-							            		ArrayList.class, String.class));
-						    if(keywords.size() == 0)
-						    { Logger.info("skipping");
-						    	continue;}
-							String query = StringUtils.join(keywords, " OR "); 
-							Logger.info(query);
-							/*for(JsonNode keyword : keywords){
-								query += keyword.toString()+" OR ";
-							}*/
-							DataManager dataManager = new DataManager();
-							dataManager.setTwitterMaxPages(100);
-							Date current = new Date();
-							SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd");
-							Calendar now = Calendar.getInstance();
-							now.setTime(current);
-							now.add(Calendar.DAY_OF_WEEK, -7);
-							dataManager.collectRawData(query,
-									sdfDate.format(now.getTime()),
-									sdfDate.format(current),
-									"en");
-							ArrayList<DBObject> tweets = dataManager.getRawData();
-							Logger.info("inserting: "+ tweets.size() + " tweets");
-							DBCollection tweetsCollection = PlayJongo.getCollection(projectName).getDBCollection();
-							tweetsCollection.insert(tweets, new InsertOptions().continueOnError(true));				
+				Logger.info("running job @:" + new Date().toString());
+				File dir = Play.application().getFile("private/tracking");
+				File[] directoryListing = dir.listFiles();
+				if (directoryListing != null) {
+					for (File child : directoryListing) {
+						String projectName = child.getName();
+						if(projectName.endsWith("~"))
+							continue;
+						Logger.info("querying for project: " + projectName);
+						try {
+							FileInputStream fis = new FileInputStream(child);
+
+							// Construct BufferedReader from InputStreamReader
+							BufferedReader br = new BufferedReader(
+									new InputStreamReader(fis));
+
+							String keywords = br.readLine();
+
+							while (keywords != null && keywords.startsWith("$- ")) {
+
+								String query = keywords.substring(3);
+								Logger.info(query);
+
+								DataManager dataManager = new DataManager();
+								dataManager.setTwitterMaxPages(100);
+								Date current = new Date();
+								SimpleDateFormat sdfDate = new SimpleDateFormat(
+										"yyyy-MM-dd");
+								Calendar now = Calendar.getInstance();
+								now.setTime(current);
+								now.add(Calendar.DAY_OF_WEEK, -7);
+								dataManager.collectRawData(query,
+										sdfDate.format(now.getTime()),
+										sdfDate.format(current), "en");
+								ArrayList<DBObject> tweets = dataManager
+										.getRawData();
+								Logger.info("inserting: " + tweets.size()
+										+ " tweets");
+								DBCollection tweetsCollection = PlayJongo
+										.getCollection(projectName)
+										.getDBCollection();
+								try{
+								tweetsCollection.insert(tweets,
+										new InsertOptions()
+												.continueOnError(true));
+								}
+								catch(Exception e)
+								{
+									Logger.error(e.getMessage());
+								}
+								keywords = br.readLine();
+							}
+							br.close();
 							
-						} catch (FileNotFoundException e) {
+						}
+						catch (IOException e) {
 							Logger.error(e.getMessage());
-						} catch (Exception e) {
-							Logger.error(e.getMessage());
-						} 
-					    }
-					  } else {
-						  Logger.error("no tracking files found");
+						}
 					}
+				} else {
+					Logger.error("no tracking files found");
+				}
 			}
 		};
 		FiniteDuration delay = FiniteDuration.create(delayInSeconds, TimeUnit.SECONDS);
 		FiniteDuration frequency = FiniteDuration.create(1, TimeUnit.DAYS);
-		job = Akka.system()
+		job = Akka
+				.system()
 				.scheduler()
 				.schedule(delay, frequency, showTime,
 						Akka.system().dispatcher());
@@ -144,7 +160,7 @@ public class Global extends GlobalSettings {
 	@Override
 	public void onStop(Application app) {
 		Logger.info("Application shutdown...");
-		if(job != null)
+		if (job != null)
 			job.cancel();
 	}
 }

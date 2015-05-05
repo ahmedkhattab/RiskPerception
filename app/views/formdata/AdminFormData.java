@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -49,33 +50,7 @@ public class AdminFormData {
 			  if (directoryListing != null) {
 			    for (File child : directoryListing) {
 			    	String projectName = child.getName();
-			    	int pos = projectName.lastIndexOf(".");
-			    	if (pos > 0) {
-			    		projectName = projectName.substring(0, pos);
-			    	}
 			    	trackingMap.put(projectName, false);
-			    }
-			  }
-			  return trackingMap;
-		  }
-	  public static Map<String, String> makeKeywordsMap() {
-		    Map<String, String> trackingMap = new HashMap<String, String>();
-		    File dir = Play.application().getFile("private/tracking");
-			  File[] directoryListing = dir.listFiles();
-			  if (directoryListing != null) {
-			    for (File child : directoryListing) {
-			    	String projectName = child.getName();
-			    	int pos = projectName.lastIndexOf(".");
-			    	if (pos > 0) {
-			    		projectName = projectName.substring(0, pos);
-			    	}
-			    	String keywords = "";
-					try {
-						keywords = Json.parse(new FileInputStream(child)).toString();
-					} catch (FileNotFoundException e) {
-						Logger.error(e.getMessage());
-					}
-			    	trackingMap.put(projectName, keywords);
 			    }
 			  }
 			  return trackingMap;
@@ -149,7 +124,13 @@ public class AdminFormData {
 
 	public static String getKeywords(String projectName) {
 		try {
-			return Json.parse(new FileInputStream(Play.application().getFile("private/tracking/"+projectName+".json"))).toString();
+			Scanner scan = new Scanner(Play.application().getFile("private/tracking/"+projectName));
+			scan.useDelimiter("\\Z");
+			String content = "";
+			if(scan.hasNext())
+				content = scan.next();
+			scan.close();
+			return content;
 		} catch (FileNotFoundException e) {
 			Logger.error(e.getMessage());
 			return null;
