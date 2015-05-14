@@ -4,6 +4,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import play.Logger;
+
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
@@ -93,6 +95,16 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 		ArrayList<DBObject> tweetList = createRawTweetList(twitter, query);
 		status = "Ready";
 		return tweetList;
+	}
+	
+	public Status getStatus(long id) {
+		Twitter twitter = getTwitter();
+		try {
+			return twitter.showStatus(id);
+		} catch (TwitterException e) {
+			Logger.error("unable to fetch status ("+ id +"): "+ e.getMessage());
+			return null;
+		}
 	}
 
 	/**

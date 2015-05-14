@@ -16,15 +16,17 @@
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.min.js"))"></script>
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("highcharts.js"))"></script>
     <script src="@routes.WebJarAssets.at(WebJarAssets.locate("3.11.0/vis.min.js"))"></script>
-	
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("modules/exporting.js"))"></script>
-	<script src="@routes.Assets.at("javascripts/highcharts-regression.js")"></script>
-	<script src="@routes.Assets.at("javascripts/plotsmanager.js")"></script>
-	<script src="@routes.Assets.at("javascripts/spin.min.js")"></script>
-	
 	<script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/jquery.fileupload.js"))"></script>
     <script src="@routes.WebJarAssets.at(WebJarAssets.locate("js/bootstrap.min.js"))"></script>
+    
+	<script src="@routes.Assets.at("javascripts/highcharts-regression.js")"></script>
+	<script src="@routes.Assets.at("javascripts/plotsmanager.js")"></script>
+	<script src="@routes.Assets.at("javascripts/networkvisualizer.js")"></script>
+	<script src="@routes.Assets.at("javascripts/spin.min.js")"></script>
+
     <script type="text/javascript" src='@routes.MainController.javascriptRoutes()'></script>
+  
   </head>
   <body>
   <div class="navbar navbar-inverse" role="navigation">
@@ -46,7 +48,7 @@
             <li><a href="/classification">Data Classification</a></li>
           </ul>
         </li>
-        <li><a href="/visualization">Data Visualization</a></li>
+        <li><a href="/visualization">Network Visualization</a></li>
       </ul>
     </div><!-- /.navbar-collaps -->
     
@@ -55,15 +57,13 @@
 
     @content
    
-	<div class="modal fade" id="tagcloud-modal" tabindex="-1" role="dialog"
-			aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal fade" id="tagcloud-modal" tabindex="-1" role="dialog">
 			<div class="modal-dialog" style="width: 80%;">
 				<div class="modal-content">
 					<div class="modal-body">
 						<button type="button" class="close" data-dismiss="modal">
 							<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
 						</button>
-					
 					</div>
 					
 				</div>

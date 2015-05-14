@@ -1,3 +1,10 @@
+/**
+ * This script provides helper function for displaying
+ * different types of plots for emotion/classification
+ * data
+ * 
+ * @author Ahmed Khattab
+ */
 function getDistributionBarOptions() {
 	var options = {
 	        chart: {
