@@ -77,8 +77,8 @@ public class VisualizationController extends Controller {
 		try {
 			classificationManager.setRawTweets(tweets);
 		} catch (IOException e) {
-			e.printStackTrace();
 			Logger.error("could not set raw tweets");
+			Logger.error(e.getMessage());
 			return null;
 		}
 
