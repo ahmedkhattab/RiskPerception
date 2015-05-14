@@ -124,6 +124,7 @@ public class ClassificationManager implements Serializable{
 					" ", ":");
 			System.out.println(this.classificationData.size());
 		}
+		file.delete();
 	}
 
 	/**

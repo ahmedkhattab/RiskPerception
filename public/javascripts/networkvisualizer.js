@@ -16,7 +16,7 @@ var toVisData = function(interactions){
 		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png'});
 		            added[user] = "";
 	            }
-	            instances.push({id: c, shape: 'circle', label: '', color: toColor(i.class)});
+	            instances.push({id: c, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
 	            for(var retweeter in i.retweetedBy)
 	            {
 	            	if(retweeter > 50)

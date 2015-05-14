@@ -129,23 +129,21 @@ public class VisualizationController extends Controller {
 					interaction.put("creator", thisUser.getName());
 					interaction.put("popularity",thisUser.getFollowersCount());
 					interaction.put("class", classifiedStatus.getClassOfstatus());
-					//interaction.put("message",thisStatus.getText());
+					interaction.put("message",thisStatus.getText());
 					interaction.putArray("retweetedBy");
 					interaction.putArray("repliedToBy");
 				}
-				else
-					System.out.println("hre");
 			}
 			if(thisStatus.getRetweetedStatus() != null)
 			{
-				long retweetedStatus = thisStatus.getRetweetedStatus().getId();
+				twitter4j.Status retweetedStatus = thisStatus.getRetweetedStatus();
 				if(interactions.get(retweetedStatus+"") == null)
 				{
-					User originator = thisStatus.getRetweetedStatus().getUser();
-					ObjectNode interaction = interactions.putObject(thisStatus.getRetweetedStatus().getId()+"");
+					User originator = retweetedStatus.getUser();
+					ObjectNode interaction = interactions.putObject(retweetedStatus.getId()+"");
 					interaction.put("creator", originator.getName());
 					interaction.put("popularity",originator.getFollowersCount());
-					//interaction.put("message",thisStatus.getText());
+					interaction.put("message",retweetedStatus.getText());
 					//using the same class of the retweet (right ?)
 					interaction.put("class", classifiedStatus.getClassOfstatus());
 					interaction.putArray("repliedToBy");
@@ -154,7 +152,7 @@ public class VisualizationController extends Controller {
 				}
 				else
 				{
-					ArrayNode edges = (ArrayNode)interactions.get(retweetedStatus+"").get("retweetedBy");
+					ArrayNode edges = (ArrayNode)interactions.get(retweetedStatus.getId()+"").get("retweetedBy");
 					edges.addObject().put("name",thisUser.getName()).put("popularity", thisUser.getFollowersCount());
 				}
 			}
@@ -186,7 +184,7 @@ public class VisualizationController extends Controller {
 						interaction.put("creator", originalStatus.getUser().getName());
 						interaction.put("popularity",originalStatus.getUser().getFollowersCount());
 						interaction.put("class", "unknown");
-						//interaction.put("message",thisStatus.getText());
+						interaction.put("message",originalStatus.getText());
 						interaction.putArray("retweetedBy");
 						interaction.putArray("repliedToBy").add(thisUser.getName());
 					}
