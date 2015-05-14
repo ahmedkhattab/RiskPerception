@@ -55,6 +55,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import controllers.ClassificationController;
+import play.Play;
 import play.libs.Json;
 import tools.InputOptionCollection;
 import tools.DataTypes.ClassCounter;
@@ -961,7 +962,7 @@ public class ClassificationManager implements Serializable{
 				return resultFile;
 			}
 		} else {
-			File resultFile = new File("convertFile");
+			File resultFile = new File(Play.application().path().getPath()+"/private/convertFile");
 			resultFile.deleteOnExit();
 			return resultFile;
 		}
