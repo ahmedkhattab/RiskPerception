@@ -78,11 +78,15 @@ public class VisualizationController extends Controller {
 			classificationManager.setRawTweets(tweets);
 		} catch (IOException e) {
 			e.printStackTrace();
+			Logger.error("could not set raw tweets");
 			return null;
 		}
 
 		if (!classificationManager.classifyData(false))
+		{
+			Logger.error("classfication failed");
 			return null;
+		}
 		classificationManager.reset();
 		Map<Long, String> classifiedData = classificationManager
 				.getClassifiedDataMap();
