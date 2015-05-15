@@ -3,6 +3,10 @@ package views.formdata;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -124,14 +128,11 @@ public class AdminFormData {
 
 	public static String getKeywords(String projectName) {
 		try {
-			Scanner scan = new Scanner(Play.application().getFile("private/tracking/"+projectName));
-			scan.useDelimiter("\\Z");
-			String content = "";
-			if(scan.hasNext())
-				content = scan.next();
-			scan.close();
-			return content;
+			return new String(Files.readAllBytes(Play.application().getFile("private/tracking/"+projectName).toPath()), StandardCharsets.UTF_8);
 		} catch (FileNotFoundException e) {
+			Logger.error(e.getMessage());
+			return null;
+		} catch (IOException e) {
 			Logger.error(e.getMessage());
 			return null;
 		}
