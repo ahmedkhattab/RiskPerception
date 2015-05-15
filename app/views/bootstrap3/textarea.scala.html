@@ -9,6 +9,7 @@
                 name="@field.name" 
                 placeholder="@placeholder" 
                 >@field.value.getOrElse("")</textarea>
+      <span class="help-block">@help</span>
       <span class="help-block">@{field.error.map { error => error.message }}</span>
     </div>
   </div>

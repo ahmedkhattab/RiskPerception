@@ -46,7 +46,7 @@ createProjectForm: Form[views.formdata.CreateProjectFormData],
 			        help = "",
 			        fieldType = "password")
 			        
-			@textarea(adminForm("keywordsFile"), label = "Keywords File")
+			@textarea(adminForm("keywordsFile"), label = "Keywords File", placeholder = "$- keyword1 OR keyword2 ...", help = "In case of multiple queries, use \"$-\" to denote the start of each query" )
 			</div>
 			
 			 <div class="form-group">
