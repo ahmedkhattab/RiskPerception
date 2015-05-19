@@ -27,7 +27,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 		<legend>Network Visualization</legend>
 	</div>
 
-	<div class="col-sm-3">
+	<div class="col-sm-3" style="width: 26%;">
 		<div id="loadedMsgs" class="flash well col-sm-offset-1"
 			style="display: none;">
 			<div class="text-success"></div>
@@ -60,7 +60,12 @@ resultsAvailable: Boolean) @import bootstrap3._
 					placeholder = "dd.mm.yyyy", help = "") <br />
 					@datepicker(visualizationForm("toDate"), label = "To", placeholder
 					= "dd.mm.yyyy", help = "")
-
+						<div class="checkbox input-group" id="add_after_msg_div" style="
+	width: 85%; margin-left: 15px; padding-top: 15px;">
+							<label> <input type="checkbox" name="ignore-neutral"
+								id="ignore-neutral" value="true"> Ignore neutral tweets ?
+							</label>
+						</div>
 					<div class="input-group pull-right" style="padding-top: 20px;">
 						<button id="store-fetch" type="button" value="fetch"
 							class="btn btn-success">Fetch</button>
@@ -69,7 +74,7 @@ resultsAvailable: Boolean) @import bootstrap3._
 			</div>
 		</div>
 	</div>
-	<div class="col-sm-9" id="network"></div>
+	<div class="col-sm-9" id="network" style="width: 74%;"></div>
 </fieldset>
 
 <script>
@@ -85,11 +90,12 @@ resultsAvailable: Boolean) @import bootstrap3._
 			function(e) {
 				var fromDate = $('#fromDate').val();
 				var toDate = $('#toDate').val();
+				var ignoreNeutrals = $("#ignore-neutral").is(':checked')
 				var $this = $(this);
 				$this.text('Loading').removeClass('btn-success').addClass(
 						'btn-default').addClass('loading');
 				jsRoutes.controllers.VisualizationController.fetch(fromDate,
-						toDate).ajax(
+						toDate, ignoreNeutrals).ajax(
 						{
 							success : function(data) {
 

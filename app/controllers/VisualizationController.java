@@ -67,7 +67,7 @@ public class VisualizationController extends Controller {
 	}
 
 	private static ArrayList<ArrayList<ClassifiedStatus>> classify(
-			Iterable<twitter4j.Status> tweets) {
+			Iterable<twitter4j.Status> tweets, boolean ignoreNeutrals) {
 		ClassificationManager classificationManager;
 		classificationManager = (ClassificationManager) Utils
 				.loadObject("default_class");
@@ -92,12 +92,17 @@ public class VisualizationController extends Controller {
 				.getClassifiedDataMap();
 		for (twitter4j.Status tweet : tweets) {
 			String tweetClass = classifiedData.get(tweet.getId());
+			if(ignoreNeutrals && tweetClass.equals("neutral"))
+				continue;
 			if(tweet.getInReplyToUserId() != -1)
 				replies.add(new ClassifiedStatus(tweet, tweetClass));
 			else
 				normals.add(new ClassifiedStatus(tweet, tweetClass));
 			
 		}
+		int total = normals.size() + replies.size();
+		Logger.info("classifyed "+ total +" tweets");
+
 		ArrayList<ArrayList<ClassifiedStatus>> result = new ArrayList<ArrayList<ClassifiedStatus>>();
 		result.add(normals);
 		result.add(replies);
@@ -105,13 +110,13 @@ public class VisualizationController extends Controller {
 		
 	}
 
-	public static Result fetch(String fromDate, String toDate) {
+	public static Result fetch(String fromDate, String toDate, boolean ignoreNeutrals) {
 		
 		MongoCursor<twitter4j.Status> tweets = Tweet.findByDate(fromDate,
 				toDate);
 		
 		Logger.info("classifying "+tweets.count()+" tweets");
-		ArrayList<ArrayList<ClassifiedStatus>> classifiedAll = classify(tweets);
+		ArrayList<ArrayList<ClassifiedStatus>> classifiedAll = classify(tweets, ignoreNeutrals);
 		ArrayList<ClassifiedStatus> classifiedTweets = classifiedAll.get(0);
 		ArrayList<ClassifiedStatus> classifiedReplies = classifiedAll.get(1);
 		

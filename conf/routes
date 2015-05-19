@@ -12,7 +12,7 @@ GET     /collect/tagcloud           controllers.MainController.tagcloud()
 GET	    /classification             controllers.ClassificationController.classification()
 GET     /emotion                    controllers.EmotionMeasurementController.emotion()
 GET     /visualization              controllers.VisualizationController.visualization()
-GET     /visualization/fetch        controllers.VisualizationController.fetch(fromDate, toDate)
+GET     /visualization/fetch        controllers.VisualizationController.fetch(fromDate:String, toDate:String, ignoreNeutrals: Boolean)
 GET     /emotion/plot/:plotType 	controllers.EmotionMeasurementController.handlePlot(plotType, param: Int ?= 0)
 GET     /classification/plot/:plotType 	controllers.ClassificationController.handlePlot(plotType, param: Int ?= 0)
 
