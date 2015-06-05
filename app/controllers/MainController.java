@@ -140,7 +140,7 @@ public class MainController extends Controller {
 			response().setContentType("text/plain");
 			return internalServerError("missing fields required !");
 		} else {
-			if (token.equals("12345678")) {
+			if (token.equals("mrpa59")) {
 				try {
 					
 					FileWriter file;
@@ -177,7 +177,7 @@ public class MainController extends Controller {
 			return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
 		} else {
 			AdminFormData data = formData.get();
-			if (data.token.equals("12345678")) {
+			if (data.token.equals("mrpa59")) {
 				try {
 					/*if(Utils.isValidJSON(data.keywordsFile))
 					{

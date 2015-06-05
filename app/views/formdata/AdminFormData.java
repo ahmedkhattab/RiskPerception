@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -47,8 +48,8 @@ public class AdminFormData {
 	  }
 
 	  public static Map<String, Boolean> makeTrackingMap() {
-		    Map<String, Boolean> trackingMap = new HashMap<String, Boolean>();
-		    trackingMap.put("", false);
+		    Map<String, Boolean> trackingMap = new TreeMap<String, Boolean>();
+		    trackingMap.put("", true);
 		    File dir = Play.application().getFile("private/tracking");
 			  File[] directoryListing = dir.listFiles();
 			  if (directoryListing != null) {
