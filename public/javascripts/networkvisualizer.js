@@ -6,35 +6,40 @@ var toVisData = function(interactions){
 	var users = [];
 	var edges = [];
 	var network = null;
-	var added = {};
+	var addedUsers = {};
+	var addedTweets = {};
 	var c = 1;
 	for(var id in interactions){
 		  if (interactions.hasOwnProperty(id)) {
 	            var i = interactions[id];
 	            var user = i.creator;
-	            if(!added.hasOwnProperty(user)){
+	            if(!addedUsers.hasOwnProperty(user)){
 		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png'});
-		            added[user] = "";
+		            addedUsers[user] = "";
 	            }
 	            instances.push({id: id, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
+	            addedTweets[id] = "";
 	            for(var retweeter in i.retweetedBy)
 	            {
 	            	if(retweeter > 50)
 	            		break;
             		retweeter = i.retweetedBy[retweeter];
-	            	if(!added.hasOwnProperty(retweeter.name)){
+	            	if(!addedUsers.hasOwnProperty(retweeter.name)){
 	 		            instances.push({id: retweeter.name, label: retweeter.name, shape: 'image', image: '/assets/images/user.png', value: retweeter.popularity});
-	 		            added[retweeter.name] = "";
+	 		           addedUsers[retweeter.name] = "";
 	            	}
 	            	edges.push({from: id, to: retweeter.name, color: toColor(i.class) });
 	            }
 	            for(var reply in i.replies)
 	            {
 	            	reply = i.replies[reply];
-		            instances.push({id: reply.id, shape: 'circle', label:'', title: reply.message, color: toColor(reply.class)});
-	            	if(!added.hasOwnProperty(reply.creator)){
+		            if(!addedTweets.hasOwnProperty(reply.id)){
+		            	instances.push({id: reply.id, shape: 'circle', label:'', title: reply.message, color: toColor(reply.class)});
+			            addedTweets[reply.id] = "";
+		            }
+		            if(!addedUsers.hasOwnProperty(reply.creator)){
 	 		            instances.push({id: reply.creator, label: reply.creator, shape: 'image', image: '/assets/images/user.png', value: reply.popularity});
-	 		            added[reply.creator] = "";
+	 		            addedUsers[reply.creator] = "";
 	            	}
 	            	edges.push({from: reply.id, to: id, color: toColor(reply.class), dashes: true });
 		            edges.push({from: reply.creator, to: reply.id, color: toColor(reply.class) });
@@ -45,7 +50,6 @@ var toVisData = function(interactions){
 	            
 	        }
 	}
-	console.dir(added);
 	console.dir(instances);
 	console.dir(edges);
 

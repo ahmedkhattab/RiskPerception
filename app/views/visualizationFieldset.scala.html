@@ -103,7 +103,7 @@ trackingMap: Map[String, Boolean]) @import bootstrap3._
 				var ignoreNeutrals = $("#ignore-neutral").is(':checked')
 				var $this = $(this);
 				$this.text('Loading').removeClass('btn-success').addClass(
-						'btn-default').addClass('loading');
+						'btn-default').addClass('loading').prop('disabled', true);
 				jsRoutes.controllers.VisualizationController.fetch(fromDate,
 						toDate, projectName, ignoreNeutrals).ajax(
 						{
@@ -117,7 +117,7 @@ trackingMap: Map[String, Boolean]) @import bootstrap3._
 								toVisData(data.interactions);
 								$this.text('Fetch').removeClass('btn-default')
 										.removeClass('loading').addClass(
-												'btn-success');
+												'btn-success').prop('disabled', false);
 							},
 							error : function() {
 								alert("Error!");
