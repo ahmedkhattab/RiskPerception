@@ -69,10 +69,17 @@ trackingMap: Map[String, Boolean]) @import bootstrap3._
 					placeholder = "dd.mm.yyyy", help = "") <br />
 					@datepicker(visualizationForm("toDate"), label = "To", placeholder
 					= "dd.mm.yyyy", help = "")
-						<div class="checkbox input-group" id="add_after_msg_div" style="
+						<div class="checkbox input-group" style="
 	width: 85%; margin-left: 15px; padding-top: 15px;">
 							<label> <input type="checkbox" name="ignore-neutral"
 								id="ignore-neutral" value="true"> Ignore neutral tweets ?
+							</label>
+						</div>
+						<div class="checkbox input-group" 
+						title="Singletons are tweets with no retweets nor replies"
+						style="width: 85%; margin-left: 15px; padding-top: 15px;">
+							<label> <input type="checkbox" name="ignore-singletons"
+								id="ignore-singletons" value="true"> Ignore singleton tweets?
 							</label>
 						</div>
 					<div class="input-group pull-right" style="padding-top: 20px;">
@@ -100,7 +107,8 @@ trackingMap: Map[String, Boolean]) @import bootstrap3._
 				var fromDate = $('#fromDate').val();
 				var toDate = $('#toDate').val();
 				var projectName = $('#projectName option:selected').text(); 
-				var ignoreNeutrals = $("#ignore-neutral").is(':checked')
+				var ignoreNeutrals = $("#ignore-neutral").is(':checked');
+				var ignoreSingletons = $("#ignore-singletons").is(':checked');
 				var $this = $(this);
 				$this.text('Loading').removeClass('btn-success').addClass(
 						'btn-default').addClass('loading').prop('disabled', true);
@@ -114,7 +122,7 @@ trackingMap: Map[String, Boolean]) @import bootstrap3._
 								$('#loadedMsgs > div').append(data.message + 
 								"<br /> (Network graph is being generated, \
 								this may take a couple of minutes)");
-								toVisData(data.interactions);
+								toVisData(data.interactions, ignoreSingletons);
 								$this.text('Fetch').removeClass('btn-default')
 										.removeClass('loading').addClass(
 												'btn-success').prop('disabled', false);

@@ -136,6 +136,7 @@ public class VisualizationController extends Controller {
 					interaction.put("popularity",thisUser.getFollowersCount());
 					interaction.put("class", classifiedStatus.getClassOfstatus());
 					interaction.put("message",thisStatus.getText());
+					interaction.put("singleton", true);
 					interaction.putArray("retweetedBy");
 					interaction.putArray("replies");
 				}
@@ -152,13 +153,16 @@ public class VisualizationController extends Controller {
 					interaction.put("message",retweetedStatus.getText());
 					//using the same class of the retweet (right ?)
 					interaction.put("class", classifiedStatus.getClassOfstatus());
+					interaction.put("singleton", false);
 					interaction.putArray("replies");
 					interaction.putArray("retweetedBy").addObject().put("name",thisUser.getName())
 					.put("popularity", thisUser.getFollowersCount());
 				}
 				else
 				{
-					ArrayNode edges = (ArrayNode)interactions.get(retweetedStatus.getId()+"").get("retweetedBy");
+					ObjectNode originalTweet = (ObjectNode)interactions.get(retweetedStatus.getId()+"");
+					ArrayNode edges = (ArrayNode)originalTweet.get("retweetedBy");
+					originalTweet.put("singleton", false);
 					edges.addObject().put("name",thisUser.getName()).put("popularity", thisUser.getFollowersCount());
 				}
 			}
@@ -174,7 +178,9 @@ public class VisualizationController extends Controller {
 				System.out.println(originalStatusId);
 				if(interactions.get(originalStatusId+"") != null)
 				{
-					ArrayNode replies = (ArrayNode)interactions.get(originalStatusId+"").get("replies");
+					ObjectNode originalTweet = (ObjectNode)interactions.get(originalStatusId+"");
+					ArrayNode replies = (ArrayNode)originalTweet.get("replies");
+					originalTweet.put("singleton", false);
 					reply = replies.addObject();
 				}
 				else
@@ -193,6 +199,7 @@ public class VisualizationController extends Controller {
 						interaction.put("class", "neutral");
 						interaction.put("message",originalStatus.getText());
 						interaction.putArray("retweetedBy");
+						interaction.put("singleton", false);
 						reply = interaction.putArray("replies").addObject();
 					
 					}
@@ -202,6 +209,7 @@ public class VisualizationController extends Controller {
 					reply.put("popularity",thisUser.getFollowersCount());
 					reply.put("class", classifiedStatus.getClassOfstatus());
 					reply.put("message",thisStatus.getText());
+					reply.put("singleton", false);
 					reply.putArray("retweetedBy");
 					reply.putArray("replies");
 			}

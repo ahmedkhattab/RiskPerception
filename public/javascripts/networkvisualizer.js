@@ -1,7 +1,7 @@
 /**
  * 
  */
-var toVisData = function(interactions){
+var toVisData = function(interactions, skipSingletons){
 	var instances = [];
 	var users = [];
 	var edges = [];
@@ -13,6 +13,9 @@ var toVisData = function(interactions){
 		  if (interactions.hasOwnProperty(id)) {
 	            var i = interactions[id];
 	            var user = i.creator;
+	            
+	            if(i.singleton == skipSingletons)
+	            	continue;
 	            if(!addedUsers.hasOwnProperty(user)){
 		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png'});
 		            addedUsers[user] = "";
