@@ -1,6 +1,7 @@
 package views.formdata;
 
 import play.data.validation.ValidationError;
+import play.data.validation.Constraints.Required;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,9 @@ public class ClassificationFormData {
   
   public List<String> preprocessing = new ArrayList<>(); 
   public List<String> classifiers = new ArrayList<>(); 
+  public String fromDate = "";
+  public String toDate = "";
+  public String projectName = "";
   
   /** Required for form instantiation. */
   public ClassificationFormData() {

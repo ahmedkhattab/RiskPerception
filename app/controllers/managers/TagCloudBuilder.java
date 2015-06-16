@@ -122,9 +122,9 @@ public class TagCloudBuilder {
 			int count = wordCounter.get(i);
 			if (count > 50)
 				count = 50;
-			if (count == 1 && cutoff > 0)
+			if (count < 3 && cutoff > 0)
 				cutoff--;
-			if (count == 1 && cutoff == 0)
+			if (count < 3 && cutoff == 0)
 			{
 				wordList.remove(i);
 				wordCounter.remove(i);
@@ -133,6 +133,7 @@ public class TagCloudBuilder {
 				else
 					continue;
 			}
+			
 			result += getLabel(wordList.get(i), count);
 			wordList.remove(i);
 			wordCounter.remove(i);

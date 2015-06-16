@@ -29,22 +29,22 @@ import uk.co.panaxiom.playjongo.PlayJongo;
 
 public class Tweet{
 
-    public static MongoCollection tweets() {
-        return PlayJongo.getCollection("autonomous_driving");
+    public static MongoCollection tweets(String projectName) {
+        return PlayJongo.getCollection(projectName);
     }
 
     @JsonProperty("_id")
     public ObjectId id;
 
-    public void insert() {
-        tweets().save(this);
+    public void insert(String projectName) {
+        tweets(projectName).save(this);
     }
 
-    public void remove() {
-        tweets().remove(this.id);
+    public void remove(String projectName) {
+        tweets(projectName).remove(this.id);
     }
     
-    public static MongoCursor<Status> findByDate(String fromDate, String toDate) {
+    public static MongoCursor<Status> findByDate(String fromDate, String toDate, String projectName) {
     	Date from;
     	Date to;
 		try {
@@ -53,7 +53,7 @@ public class Tweet{
 		} catch (ParseException e) {
 			return null;
 		}
-        return tweets().find("{created_at: {$lt: #|#, $gt: #|#}}", to, from ).map(
+        return tweets(projectName).find("{created_at: {$lt: #|#, $gt: #|#}}", to, from ).map(
         	    new ResultHandler<Status>() {
         	        @Override
         	        public Status map(DBObject result) {

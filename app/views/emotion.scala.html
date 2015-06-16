@@ -1,7 +1,8 @@
 @(emotionForm: Form[views.formdata.EmotionFormData], 
   preprocessing: Map[String,Boolean],
   dataAvailable: Boolean,
-  resultsAvailable: Boolean) 
+  resultsAvailable: Boolean,
+  trackingMap: Map[String, Boolean]) 
 
 @import helper._ 
 @import controllers.routes.javascript._ 
@@ -11,7 +12,7 @@
 	<div class="well">
 
 		@form(routes.EmotionMeasurementController.postEmotion(), 'class -> "form-horizontal", 'id -> "emForm") {
-		@emotionFieldset(emotionForm, preprocessing, dataAvailable, resultsAvailable) } 
+		@emotionFieldset(emotionForm, preprocessing, dataAvailable, resultsAvailable, trackingMap) } 
 	</div>
 			@if(resultsAvailable) { @form(routes.MainController.saveData("em-values"), 'class ->
 			"form-horizontal") {

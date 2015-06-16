@@ -1,8 +1,8 @@
-@(field: Field, label: String = "CHANGEME", optionMap: Map[String, Boolean], isMultiple: Boolean, help: String = "", popup: Boolean = false)
+@(field: Field, label: String = "CHANGEME", optionMap: Map[String, Boolean], isMultiple: Boolean, help: String = "", popup: Boolean = false, sidebar: Boolean = false)
 
-  <div class="form-group @if(field.hasErrors) {has-error}">
-    <label class="@if(popup) {col-sm-5} else {col-sm-2} control-label" for="@field.id">@label</label>
-    <div class="@if(popup) {col-sm-6} else {col-sm-10}">
+  <div class="@if(!sidebar) {form-group} @if(field.hasErrors) {has-error}">
+    <label class="@if(popup) {col-sm-4} else {col-sm-2} control-label" for="@field.id">@label</label>
+    <div class="@if(sidebar) {input-group} @if(popup) {col-sm-6} else {col-sm-10}" @if(sidebar){style="width: 200px;"}>
       <select
         class="form-control"
         id="@field.id"

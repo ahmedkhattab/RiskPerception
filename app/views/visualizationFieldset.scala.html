@@ -1,6 +1,7 @@
 @(visualizationForm: Form[views.formdata.VisualizationFormData],
 preprocessing: Map[String, Boolean], dataAvailable: Boolean,
-resultsAvailable: Boolean) @import bootstrap3._
+resultsAvailable: Boolean,
+trackingMap: Map[String, Boolean]) @import bootstrap3._
 <style>
 .panel-heading .accordion-toggle:after {
 	font-family: 'Glyphicons Halflings';
@@ -55,7 +56,15 @@ resultsAvailable: Boolean) @import bootstrap3._
 				<div class="panel-heading" role="tab">
 					<h4 class="panel-title">Load Data From Our Store</h4>
 				</div>
-				<div class="panel-body">
+				<div class="panel-body"> 
+					@select(visualizationForm("projectName"),
+			          label = "Project",
+			          optionMap = trackingMap,
+			          isMultiple = false,
+			          popup = false,
+			          sidebar = true,
+			          help = "")
+		  
 					@datepicker(visualizationForm("fromDate"), label = "From",
 					placeholder = "dd.mm.yyyy", help = "") <br />
 					@datepicker(visualizationForm("toDate"), label = "To", placeholder
@@ -90,18 +99,21 @@ resultsAvailable: Boolean) @import bootstrap3._
 			function(e) {
 				var fromDate = $('#fromDate').val();
 				var toDate = $('#toDate').val();
+				var projectName = $('#projectName option:selected').text(); 
 				var ignoreNeutrals = $("#ignore-neutral").is(':checked')
 				var $this = $(this);
 				$this.text('Loading').removeClass('btn-success').addClass(
 						'btn-default').addClass('loading');
 				jsRoutes.controllers.VisualizationController.fetch(fromDate,
-						toDate, ignoreNeutrals).ajax(
+						toDate, projectName, ignoreNeutrals).ajax(
 						{
 							success : function(data) {
 
 								$('#loadedMsgs').show();
 								$('#loadedMsgs > div').text('');
-								$('#loadedMsgs > div').append(data.message);
+								$('#loadedMsgs > div').append(data.message + 
+								"<br /> (Network graph is being generated, \
+								this may take a couple of minutes)");
 								toVisData(data.interactions);
 								$this.text('Fetch').removeClass('btn-default')
 										.removeClass('loading').addClass(

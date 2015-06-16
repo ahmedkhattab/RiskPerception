@@ -125,11 +125,7 @@ public class MainController extends Controller {
 		} catch (IOException e) {
 			e.printStackTrace();
 			flash("error", "Error downloading data");
-			EmotionFormData emotionData = new EmotionFormData();
-			Form<EmotionFormData> formData = Form.form(EmotionFormData.class)
-					.fill(emotionData);
-			return ok(emotion.render(formData,
-					PreprocessingChoice.makePreprocessingMap(), false, false));
+			return badRequest();
 		}
 		return TODO;
 	}
@@ -295,6 +291,8 @@ public class MainController extends Controller {
 						.handleEmotionUpload(),
 				routes.javascript.ClassificationController
 						.handleTrainingUpload(),
+				routes.javascript.ClassificationController
+						.handleFetchClassify(),
 				routes.javascript.ClassificationController
 						.handleClassificationUpload(),
 				routes.javascript.ClassificationController.handlePlot(),

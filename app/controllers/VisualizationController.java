@@ -22,6 +22,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import tools.Utils;
 import twitter4j.User;
+import views.formdata.AdminFormData;
 import views.formdata.VisualizationFormData;
 import views.html.visualization;
 
@@ -49,7 +50,7 @@ public class VisualizationController extends Controller {
 		Form<VisualizationFormData> formData = Form.form(
 				VisualizationFormData.class).fill(visData);
 		return ok(visualization.render(formData,
-				PreprocessingChoice.makePreprocessingMap(), false, false));
+				PreprocessingChoice.makePreprocessingMap(), false, false, AdminFormData.makeTrackingMap()));
 	}
 
 	/**
@@ -110,10 +111,10 @@ public class VisualizationController extends Controller {
 		
 	}
 
-	public static Result fetch(String fromDate, String toDate, boolean ignoreNeutrals) {
+	public static Result fetch(String fromDate, String toDate, String projectName, boolean ignoreNeutrals) {
 		
 		MongoCursor<twitter4j.Status> tweets = Tweet.findByDate(fromDate,
-				toDate);
+				toDate, projectName);
 		
 		Logger.info("classifying "+tweets.count()+" tweets");
 		ArrayList<ArrayList<ClassifiedStatus>> classifiedAll = classify(tweets, ignoreNeutrals);
@@ -136,7 +137,7 @@ public class VisualizationController extends Controller {
 					interaction.put("class", classifiedStatus.getClassOfstatus());
 					interaction.put("message",thisStatus.getText());
 					interaction.putArray("retweetedBy");
-					interaction.putArray("repliedToBy");
+					interaction.putArray("replies");
 				}
 			}
 			if(thisStatus.getRetweetedStatus() != null)
@@ -151,7 +152,7 @@ public class VisualizationController extends Controller {
 					interaction.put("message",retweetedStatus.getText());
 					//using the same class of the retweet (right ?)
 					interaction.put("class", classifiedStatus.getClassOfstatus());
-					interaction.putArray("repliedToBy");
+					interaction.putArray("replies");
 					interaction.putArray("retweetedBy").addObject().put("name",thisUser.getName())
 					.put("popularity", thisUser.getFollowersCount());
 				}
@@ -169,11 +170,12 @@ public class VisualizationController extends Controller {
 			if(thisStatus.getInReplyToStatusId() != -1)
 			{
 				long originalStatusId = thisStatus.getInReplyToStatusId();
-
+				ObjectNode reply;
+				System.out.println(originalStatusId);
 				if(interactions.get(originalStatusId+"") != null)
 				{
-					ArrayNode edges = (ArrayNode)interactions.get(originalStatusId+"").get("repliedToBy");
-					edges.add(thisUser.getName());
+					ArrayNode replies = (ArrayNode)interactions.get(originalStatusId+"").get("replies");
+					reply = replies.addObject();
 				}
 				else
 				{
@@ -188,12 +190,20 @@ public class VisualizationController extends Controller {
 						ObjectNode interaction = interactions.putObject(originalStatus.getId()+"");
 						interaction.put("creator", originalStatus.getUser().getName());
 						interaction.put("popularity",originalStatus.getUser().getFollowersCount());
-						interaction.put("class", "unknown");
+						interaction.put("class", "neutral");
 						interaction.put("message",originalStatus.getText());
 						interaction.putArray("retweetedBy");
-						interaction.putArray("repliedToBy").add(thisUser.getName());
+						reply = interaction.putArray("replies").addObject();
+					
 					}
 				}
+					reply.put("id", thisStatus.getId()+"");
+					reply.put("creator", thisUser.getName());
+					reply.put("popularity",thisUser.getFollowersCount());
+					reply.put("class", classifiedStatus.getClassOfstatus());
+					reply.put("message",thisStatus.getText());
+					reply.putArray("retweetedBy");
+					reply.putArray("replies");
 			}
 		}
 		int total = classifiedTweets.size()+classifiedReplies.size();

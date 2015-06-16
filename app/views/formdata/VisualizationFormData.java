@@ -24,6 +24,8 @@ public class VisualizationFormData {
   public String fromDate = "";
   @Required(message = "")
   public String toDate = "";
+  @Required(message = "")
+  public String projectName = "";
   
   /** Required for form instantiation. */
   public VisualizationFormData() {

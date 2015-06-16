@@ -1,7 +1,7 @@
 package views.formdata;
 
-import play.data.validation.Constraints.Required;
 import play.data.validation.ValidationError;
+import play.data.validation.Constraints.Required;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +20,9 @@ public class EmotionFormData {
 
   
   public List<String> preprocessing = new ArrayList<>(); 
+  public String fromDate = "";
+  public String toDate = "";
+  public String projectName = "";
   
   /** Required for form instantiation. */
   public EmotionFormData() {

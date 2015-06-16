@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.UUID;
 
+import org.jongo.MongoCursor;
+
 import models.ClassifierChoice;
 import models.PreprocessingChoice;
+import models.Tweet;
 import play.data.Form;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -14,6 +17,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import tools.Utils;
+import views.formdata.AdminFormData;
 import views.formdata.ClassificationFormData;
 import views.html.classification;
 
@@ -43,9 +47,43 @@ public class ClassificationController extends Controller {
 				ClassificationFormData.class).fill(queryData);
 	
 		return ok(classification.render(formData,
-				PreprocessingChoice.makePreprocessingMap(), ClassifierChoice.makeClassifiersMap(), false, false));
+				PreprocessingChoice.makePreprocessingMap(), ClassifierChoice.makeClassifiersMap(), false, false, AdminFormData.makeTrackingMap()));
 	}
+	
+	public static Result handleFetchClassify(String fromDate, String toDate, String projectName) {
+		if(fromDate.isEmpty() || toDate.isEmpty())
+			return internalServerError("Error ! Dates were not specified");
+		if(projectName.isEmpty())
+			return internalServerError("Error ! Project name not specified");
 
+		MongoCursor<twitter4j.Status> tweets = Tweet.findByDate(fromDate,
+				toDate, projectName);
+		if(tweets.count() == 0)
+		{
+			return internalServerError("No tweets found in the specified time window");
+		}
+		ClassificationManager classificationManager;
+		if(session().get("CLASSIFIER").equals("DEFAULT"))
+			classificationManager = (ClassificationManager) Utils.loadObject("default_class");
+		else
+			classificationManager = (ClassificationManager) Utils.loadObject(session("ID")+"_class");
+		try {
+			classificationManager.setRawTweets(tweets);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		if(!classificationManager.classifyData(false))
+			return internalServerError();
+		response().setContentType("application/json");
+		ObjectNode result = Json.newObject();
+		result.put("loaded", classificationManager.classifiedDataSize());
+		result.put("message", " Successfully classified "+classificationManager.classifiedDataSize()+" message(s)");
+		classificationManager.reset();
+		Utils.saveObject(session("ID")+"_class_plot", classificationManager);
+		return ok(result);
+
+	}
+	
 	public static Result handleClassificationUpload() {
 		Form<ClassificationFormData> form = Form.form(
 				ClassificationFormData.class).bindFromRequest();

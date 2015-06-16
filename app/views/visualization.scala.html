@@ -1,7 +1,8 @@
 @(visualizationForm: Form[views.formdata.VisualizationFormData], 
   preprocessing: Map[String,Boolean],
   dataAvailable: Boolean,
-  resultsAvailable: Boolean) 
+  resultsAvailable: Boolean,
+  trackingMap: Map[String, Boolean])
 
 @import helper._ 
 @import controllers.routes.javascript._ 
@@ -11,7 +12,7 @@
 	<div class="well">
 
 		@form(routes.VisualizationController.postVisualization(), 'class -> "form-horizontal", 'id -> "visForm") {
-		@visualizationFieldset(visualizationForm, preprocessing, dataAvailable, resultsAvailable) } 
+		@visualizationFieldset(visualizationForm, preprocessing, dataAvailable, resultsAvailable, trackingMap) } 
 	</div>
 </div>
 }

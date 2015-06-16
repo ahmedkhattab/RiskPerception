@@ -2,7 +2,8 @@
   preprocessing: Map[String,Boolean],
   classifiers: Map[String,Boolean],
   dataAvailable: Boolean,
-  resultsAvailable: Boolean) 
+  resultsAvailable: Boolean,
+  trackingMap: Map[String, Boolean]) 
 
 @import helper._ 
 @import controllers.routes.javascript._ 
@@ -10,14 +11,13 @@
 @main("Data Classification") {
 <div class="container">
 	<div class="well">		
-		@classificationFieldset(classificationForm, preprocessing, classifiers, dataAvailable, resultsAvailable)
+		@classificationFieldset(classificationForm, preprocessing, classifiers, dataAvailable, resultsAvailable, trackingMap)
 	</div>
 	<div id="save-form" style="display: none;"">
 	@form(routes.MainController.saveData("classified-data"), 'class ->
 			"form-horizontal") {
 			<button id="save" type="submit" value="Save" class="btn btn-primary">Save
 				Classified Data</button>
-			<button id="tagcloud" type="button" value="TagCloud" class="btn btn-default">Creat Tag Cloud</button>
 				
 			}
 	</div>

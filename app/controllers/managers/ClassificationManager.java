@@ -43,7 +43,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.data.time.Day;
+import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.time.TimeSeriesDataItem;
@@ -186,7 +186,7 @@ public class ClassificationManager implements Serializable{
 		// read file
 		String resultLine;
 		ArrayList<Long> tweetIdList = new ArrayList<Long>();
-
+		ArrayList<Date> dateList = new ArrayList<Date>();
 		for (Status status : tweets) {
 			resultLine = instanceTitle;
 			// create line in sparse format
@@ -196,6 +196,8 @@ public class ClassificationManager implements Serializable{
 			ArrayList<ClassCounter> wordCounts = getWordCounterList(wordList,
 					words);
 			resultLine = resultLine + createSparseLine(wordList, wordCounts);
+			dateList.add(status.getCreatedAt());
+
 			tweetIdList.add(status.getId());
 			writer.println(resultLine);
 		}
@@ -204,6 +206,9 @@ public class ClassificationManager implements Serializable{
 		writer.close();
 		setSparseData(resultFile, SET_CLASSIFICATION_DATA);
 		tweetIdByIndex = tweetIdList;
+		datesByIndex = dateList;
+		System.out.println(datesByIndex.size() + "!!!!");
+		
 		return true;		
 	}
 
@@ -834,7 +839,7 @@ public class ClassificationManager implements Serializable{
 					"E MMM dd hh:mm:ss z yyyy", Locale.ENGLISH);
 			return formatter.parse(dateString);
 		} else {
-			SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
+			SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
 			return formatter.parse(dateString);
 		}
 	}
@@ -1109,7 +1114,7 @@ public class ClassificationManager implements Serializable{
 				  if(o1.equals(o2))
 					  return 0;
 			    try {
-					if(new SimpleDateFormat("dd.MM.yyyy").parse(o1).before(new SimpleDateFormat("dd.MM.yyyy").parse(o2)))
+					if(new SimpleDateFormat("dd.MM.yyyy hh:mm:ss").parse(o1).before(new SimpleDateFormat("dd.MM.yyyy hh:mm:ss").parse(o2)))
 						return -1;
 					else
 						return 1;
@@ -1122,11 +1127,11 @@ public class ClassificationManager implements Serializable{
 		TreeMap<String, TimedClassifiedData> map = new TreeMap<String, TimedClassifiedData>(comparator);
 		for (int i = 0; i < classifiedData.size(); i++) {
 			if (!map.containsKey(fromDateToString(datesByIndex.get(i)))) {
-				Day day = new Day(datesByIndex.get(i));
+				Second second = new Second(datesByIndex.get(i));
 				ArrayList<Instance> data = new ArrayList<Instance>();
 				data.add(classifiedData.get(i));
 				TimedClassifiedData timedClassifiedData = new TimedClassifiedData(
-						day, data);
+						second, data);
 				map.put(fromDateToString(datesByIndex.get(i)),
 						timedClassifiedData);
 			} else {
@@ -1145,7 +1150,7 @@ public class ClassificationManager implements Serializable{
 	 * @return The date as string.
 	 */
 	private String fromDateToString(Date date) {
-		SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
+		SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
 		return formatter.format(date);
 	}
 
@@ -1175,10 +1180,10 @@ public class ClassificationManager implements Serializable{
 			TimedClassifiedData.setClassNumberForm(classifiedData.classes());
 		}
 		for (TimedClassifiedData element : timeByDate.values()) {
-			Day day = element.getDate();
+			Second minute = element.getDate();
 			double value = getYAxisValue(element, yAxisValue);
 			if (value != Double.MIN_VALUE) {
-				series.add(day, value);
+				series.add(minute, value);
 			}
 		}
 		TimeSeriesCollection dataset = new TimeSeriesCollection();

@@ -1,6 +1,6 @@
 @(classificationForm: Form[views.formdata.ClassificationFormData],
 preprocessing: Map[String, Boolean], classifiers: Map[String, Boolean], dataAvailable: Boolean,
-resultsAvailable: Boolean) @import bootstrap3._
+resultsAvailable: Boolean, trackingMap: Map[String, Boolean]) @import bootstrap3._
 
 <!-- Modal -->
 
@@ -47,24 +47,53 @@ resultsAvailable: Boolean) @import bootstrap3._
 			 <span class="help-block">Perform cross validation (only for custom classifiers)</span>
 			 </div>
 		<div class=" col-sm-offset-1">
-			@if(dataAvailable){
 			<div class="form-group">
 				<label class="col-sm-4 control-label" for="datasource-select">Select
 					datasource:</label>
 				<div class="col-sm-4">
 					<select class="form-control" id="datasource-select"
 						name="datasource-select">
+						@if(dataAvailable){
 						<option id="fromQuery" value="fromQuery">Use last query
 							data</option>
+							}
 						<option id="fromFile" value="fromFile">Load data from
 							file</option>
+						<option id="fromStore" value="fromStore">Load data from
+							our tracking store</option>
 					</select>
 				</div>
 			</div>
-			}
-
+			<!-- Fetching Panel -->
+				<div id="fetching-panel" class="panel panel-default" style="display: none;">
+				<div class="panel-heading" role="tab">
+					<h4 class="panel-title">Load Data From Our Store</h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">   
+					@select(classificationForm("projectName"),
+			          label = "Tracking Projects",
+			          optionMap = trackingMap,
+			          isMultiple = false,
+			          popup = true,
+			          help = "")
+		          </div>
+				  <div class="form-group">   
+					@datepicker(classificationForm("fromDate"), label = "From",
+					placeholder = "dd.mm.yyyy", help = "")
+					@datepicker(classificationForm("toDate"), label = "To", placeholder
+					= "dd.mm.yyyy", help = "")
+					</div>
+					
+					
+				
+				<button id="fetch-classify-button" type="button" value="Submit"
+							class="btn btn-primary" style="margin-left: 15px;">Start Classification</button>
+				</div>
+			</div>
+			<!-- Fetching Panel -->
 			<!-- Uploading Panel -->
-			<div id="data-upload" class="uploading-panel panel panel-default "
+			<div id="uploading-panel" class="uploading-panel panel panel-default "
 				style="display: none;">
 				<div class="panel-heading" role="tab" id="headingOne">
 					<h4 class="panel-title">Load data file to classify</h4>
@@ -286,22 +315,24 @@ resultsAvailable: Boolean) @import bootstrap3._
 </form>
 <script>
 
-	if ($("#datasource-select").length) {
-		$("#datasource-select").change(function() {
-			$("#datasource-select option:selected").each(function() {
-				if ($(this).attr("value") == "fromQuery") {
-					$("#data-upload").hide();
-
-				}
-				if ($(this).attr("value") == "fromFile") {
-					$("#data-upload").show();
-				}
-			});
-		}).change();
-	} else
-		$("#data-upload").show();
-
-	$('#classify-submit').click(function(e){
+	$("#datasource-select").change(function() {
+		$("#datasource-select option:selected").each(function() {
+			if ($(this).attr("value") == "fromQuery") {
+				$("#uploading-panel").hide();
+	
+			}
+			if ($(this).attr("value") == "fromFile") {
+				$("#uploading-panel").show();
+				$("#fetching-panel").hide();
+			}
+			
+			if ($(this).attr("value") == "fromStore") {
+				$("#fetching-panel").show();
+				$("#uploading-panel").hide();
+			}
+		});
+	}).change();
+	$('#fetch-classify-button').click(function(e){
 		$(this).text('Loading')
 		.removeClass(
 				'btn-primary')
@@ -309,6 +340,56 @@ resultsAvailable: Boolean) @import bootstrap3._
 				'btn-default')
 		.addClass(
 				'loading');
+		var fromDate = $('#fromDate').val();
+		var toDate = $('#toDate').val();
+		var projectName = $('#projectName option:selected').text();
+		jsRoutes.controllers.ClassificationController.handleFetchClassify(fromDate, toDate, projectName).ajax({
+			success : function(data) {
+				$('#loadedMsgs').delay(600).show(1);
+				$('#loadedMsgs > div').text('');
+				$('#loadedMsgs > div').append(data.message);
+				$('#fetch-classify-button').text('Start Classification')
+				.removeClass(
+						'loading')
+				.addClass(
+						'btn-primary');
+				
+				window.location.hash = "visualization";
+				$("#visualization").show();
+				$("#folds").hide();
+				$('#more-plots').show();
+				$('#save-form').show();
+				showTimeSeriesChart(null, "classification", "nominal");
+				var chart = $('#container').highcharts();
+				chart.showLoading();
+				jsRoutes.controllers.ClassificationController.handlePlot('class-nominal').ajax({
+					success : function(data) {
+						$('#class-nominal').data("model", data);
+						chart = showTimeSeriesChart(data, "classification", "nominal");
+					},
+					error : function(data) {
+						$('#uploadError').delay(600).show(1);
+						$('#uploadError > div')
+								.text(data.responseText);
+						$('#fetch-classify-button').text('Start Classification')
+						.removeClass(
+								'loading')
+						.addClass(
+								'btn-primary');
+					}
+				});
+			},
+			error : function(data) {
+				$('#uploadError').delay(600).show(1);
+				$('#uploadError > div')
+						.text(data.responseText);
+				$('#fetch-classify-button').text('Start Classification')
+				.removeClass(
+						'loading')
+				.addClass(
+						'btn-primary');
+			}
+		});
 	});
 	
 	$('#plots-menu li').click(function(e) {
@@ -477,7 +558,6 @@ resultsAvailable: Boolean) @import bootstrap3._
 	});
 	$(function() {
 
-		// Change this to the location of your server-side upload handler:
 		$('.uploading-panel .fileupload')
 				.fileupload(
 						{
@@ -518,6 +598,31 @@ resultsAvailable: Boolean) @import bootstrap3._
 								$('#loadedMsgs > div').text('');
 								$('#loadedMsgs > div').append(data.result.message);
 								parentPanel.find('.files').empty();
+								$('#classify-submit').text('Start Classification')
+								.removeClass(
+										'loading')
+								.addClass(
+										'btn-primary');
+								$('#classify-submit').prop('disabled', true);
+								
+								window.location.hash = "visualization";
+								$("#visualization").show();
+								$("#folds").hide();
+								$('#more-plots').show();
+								$('#save-form').show();
+								showTimeSeriesChart(null, "classification", "nominal");
+								var chart = $('#container').highcharts();
+								chart.showLoading();
+								jsRoutes.controllers.ClassificationController.handlePlot('class-nominal').ajax({
+									success : function(data) {
+										$('#class-nominal').data("model", data);
+										chart = showTimeSeriesChart(data, "classification", "nominal");
+									},
+									error : function() {
+										alert("Error!");
+									}
+								});
+								$('#classify-submit').data("stop",0);
 							}
 						}).prop('disabled', !$.support.fileInput).parent()
 				.addClass($.support.fileInput ? undefined : 'disabled');
@@ -613,32 +718,6 @@ resultsAvailable: Boolean) @import bootstrap3._
 						'btn-default')
 				.addClass(
 						'loading');
-		data.submit().always(
-				function() {
-					$this.text('Start Classification')
-					.removeClass(
-							'loading')
-					.addClass(
-							'btn-primary');
-					$('#classify-submit').prop('disabled', true);
-					window.location.hash = "visualization";
-					$("#visualization").show();
-					$("#folds").hide();
-					$('#more-plots').show();
-					$('#save-form').show();
-					showTimeSeriesChart(null, "classification", "nominal");
-					var chart = $('#container').highcharts();
-					chart.showLoading();
-					jsRoutes.controllers.ClassificationController.handlePlot('class-nominal').ajax({
-						success : function(data) {
-							$('#class-nominal').data("model", data);
-							chart = showTimeSeriesChart(data, "classification", "nominal");
-						},
-						error : function() {
-							alert("Error!");
-						}
-					});
-					$this.data("stop",0);
-				});
+		data.submit();
 	});
 </script>

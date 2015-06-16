@@ -16,21 +16,33 @@ var toVisData = function(interactions){
 		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png'});
 		            added[user] = "";
 	            }
-	            instances.push({id: c, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
+	            instances.push({id: id, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
 	            for(var retweeter in i.retweetedBy)
 	            {
 	            	if(retweeter > 50)
 	            		break;
-	            	retweeter = i.retweetedBy[retweeter];
-	            	 if(!added.hasOwnProperty(retweeter.name)){
+            		retweeter = i.retweetedBy[retweeter];
+	            	if(!added.hasOwnProperty(retweeter.name)){
 	 		            instances.push({id: retweeter.name, label: retweeter.name, shape: 'image', image: '/assets/images/user.png', value: retweeter.popularity});
 	 		            added[retweeter.name] = "";
-	            	 }
-	            	 edges.push({from: c, to: retweeter.name, color: toColor(i.class), style: 'arrow-center' });
+	            	}
+	            	edges.push({from: id, to: retweeter.name, color: toColor(i.class) });
 	            }
+	            for(var reply in i.replies)
+	            {
+	            	reply = i.replies[reply];
+		            instances.push({id: reply.id, shape: 'circle', label:'', title: reply.message, color: toColor(reply.class)});
+	            	if(!added.hasOwnProperty(reply.creator)){
+	 		            instances.push({id: reply.creator, label: reply.creator, shape: 'image', image: '/assets/images/user.png', value: reply.popularity});
+	 		            added[reply.creator] = "";
+	            	}
+	            	edges.push({from: reply.id, to: id, color: toColor(reply.class), dashes: true });
+		            edges.push({from: reply.creator, to: reply.id, color: toColor(reply.class) });
+
+	           	}
 	         
-	            edges.push({from: user, to: c, style: 'arrow-center'});
-	            c +=1;
+	            edges.push({from: user, to: id, color: toColor(i.class) });
+	            
 	        }
 	}
 	console.dir(added);
@@ -42,7 +54,11 @@ var toVisData = function(interactions){
 		nodes: instances,
 		edges: edges
 	};
-	var options = {width: '100%', height: '500px', hideEdgesOnDrag: true};
+	var options = {width: '100%', height: '500px', interaction: {hideEdgesOnDrag: true},
+		 edges: { arrows: 'to', smooth: {
+		          type: 'discrete' }
+			}
+			};
 	network = new vis.Network(container, data, options);
 };
 

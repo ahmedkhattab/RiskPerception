@@ -157,7 +157,7 @@ function getClassificationTimeseriesOptions() {
 	var options = {
 		chart : {
 			type : 'scatter',
-			zoomType : 'xy'
+			zoomType : 'x'
 		},
 		title : {
 			text : 'Classification Values Timeseries'
@@ -174,12 +174,24 @@ function getClassificationTimeseriesOptions() {
 
 			}
 		},
+		tooltip : {
+			formatter: function() {
+                return  '<b>' + this.series.name +'</b><br/>' +
+                    Highcharts.dateFormat('%e.%b.%Y %H:%M:%S',
+                                          new Date(this.x))
+                + ', ' + categories[this.y];
+            }
+		},
 		xAxis : {
 			type : 'datetime',
-			minRange : 14 * 24 * 3600000,
+			minRange : 24 * 3600000,
 			dateTimeLabelFormats: {
-				day: '%e',
-				month: '%b',
+				second: '%H:%M:%S',
+				minute: '%H:%M',
+				hour: '%H:%M',
+				day: '%e. %b',
+				week: '%e. %b',
+				month: '%b \'%y',
 				year: '%Y'
             }
 		},

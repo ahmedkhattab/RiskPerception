@@ -6,7 +6,10 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import org.jongo.MongoCursor;
+
 import models.PreprocessingChoice;
+import models.Tweet;
 import play.data.Form;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -17,6 +20,7 @@ import tools.StringRemover;
 import tools.TextStandardizer;
 import tools.Utils;
 import tools.DataTypes.TimedMessage;
+import views.formdata.AdminFormData;
 import views.formdata.EmotionFormData;
 import views.html.emotion;
 
@@ -58,12 +62,11 @@ public class EmotionMeasurementController extends Controller {
 		Form<EmotionFormData> formData = Form.form(EmotionFormData.class).fill(
 				emotionData);
 		if (dataManager.getData().size() == 0) {
-			flash("error", "No data loaded");
 			return ok(emotion.render(formData,
-					PreprocessingChoice.makePreprocessingMap(), false, false));
+					PreprocessingChoice.makePreprocessingMap(), false, false, AdminFormData.makeTrackingMap()));
 		} else {
 			return ok(emotion.render(formData,
-					PreprocessingChoice.makePreprocessingMap(), true, false));
+					PreprocessingChoice.makePreprocessingMap(), true, false, AdminFormData.makeTrackingMap()));
 		}
 	}
 
@@ -209,7 +212,18 @@ public class EmotionMeasurementController extends Controller {
 		response().setContentType("application/json");
 		return ok(result);
 	}
-
+	
+	private static boolean handleRawDataFetching(DataManager dataManager, EmotionMeasurementManager emManager, String fromDate, String toDate, String projectName){
+		MongoCursor<twitter4j.Status> tweets = Tweet.findByDate(fromDate,
+				toDate, projectName);
+		System.out.println(tweets.count());
+		if(tweets.count() == 0)
+			return false;
+		dataManager.setRawTweets(tweets);	
+		emManager.assessMessages(dataManager.getData());
+		Utils.saveObject(session("ID")+"_data", dataManager);
+		return true;
+	}
 	/**
 	 * Process a form submission. First we bind the HTTP POST data to an
 	 * instance of EmotionFormData. The binding process will invoke the
@@ -226,48 +240,79 @@ public class EmotionMeasurementController extends Controller {
 		if (form.hasErrors()) {
 			flash("error", "Please correct errors above.");
 			return badRequest(emotion.render(form,
-					PreprocessingChoice.makePreprocessingMap(), false, false));
+					PreprocessingChoice.makePreprocessingMap(), false, false, AdminFormData.makeTrackingMap()));
 		} else {
+			
 			DataManager dataManager = (DataManager) Utils.loadObject(session("ID")+"_data");
+			String datasource = "";
+			if (request().body().asFormUrlEncoded()
+					.get("datasource-select") != null)
+				datasource = request().body().asFormUrlEncoded()
+						.get("datasource-select")[0];
 
-			if (dataManager.getData().size() == 0) {
+				boolean fromQuery = datasource.equals("fromQuery");
+				boolean fromStore = datasource.equals("fromStore");
+				
+			if (dataManager.getData().size() == 0 && !fromStore) {
 				flash("error",
 						"Error: first, some data have to be collected or loaded from file");
 				return badRequest(emotion.render(form,
 						PreprocessingChoice.makePreprocessingMap(), false,
-						false));
+						false, AdminFormData.makeTrackingMap()));
 			} else {
 				try {
 					EmotionMeasurementManager emManager = (EmotionMeasurementManager) Utils.loadObject(session("ID")+"_emotion");
-
 					emManager
 							.setDefaultEmotionTableFile(EmotionMeasurementManager.USE_WARRINER);
 
-					String[] checkedVal = request().body().asFormUrlEncoded()
-							.get("preprocessing[]");
-					boolean fromQuery = false;
-					if (request().body().asFormUrlEncoded()
-							.get("datasource-select") != null)
-						fromQuery = request().body().asFormUrlEncoded()
-								.get("datasource-select")[0]
-								.equals("fromQuery");
-
-					ArrayList<TimedMessage> data = preprocess(dataManager.getData(), checkedVal);
-					emManager.assessMessages(data);
-					flash("success", "Emotion measurement for "
-							+ emManager.getAssessedMessages()
-									.size()
-							+ " message(s) completed successfully");
-					Utils.saveObject(session("ID")+"_emotion", emManager);
+						if(fromStore)
+						{
+							String fromDate = request().body().asFormUrlEncoded()
+									.get("fromDate")[0];
+							String toDate = request().body().asFormUrlEncoded()
+									.get("toDate")[0];
+							String projectName = request().body().asFormUrlEncoded()
+									.get("projectName")[0];
+							if(fromDate.isEmpty() || toDate.isEmpty())
+							{
+								flash("error",
+										"Error ! Dates are not specified");
+								return badRequest(emotion.render(form,
+										PreprocessingChoice.makePreprocessingMap(), false,
+										false, AdminFormData.makeTrackingMap()));
+							}
+							boolean result = handleRawDataFetching(dataManager, emManager, fromDate, toDate, projectName);
+							if(!result)
+							{
+								flash("error",
+										"No data available for the selected time window");
+								return badRequest(emotion.render(form,
+										PreprocessingChoice.makePreprocessingMap(), false,
+										false, AdminFormData.makeTrackingMap()));
+							}
+								
+						}
+						else
+						{
+							String[] checkedVal = request().body().asFormUrlEncoded()
+									.get("preprocessing[]");
+							ArrayList<TimedMessage> data = preprocess(dataManager.getData(), checkedVal);
+							emManager.assessMessages(data);
+						}
+						flash("success", "Emotion measurement for "
+								+ emManager.getAssessedMessages()
+										.size()
+								+ " message(s) completed successfully");
+						Utils.saveObject(session("ID")+"_emotion", emManager);
 					
 					return ok(emotion.render(form,
 							PreprocessingChoice.makePreprocessingMap(),
-							fromQuery, true));
+							fromQuery, true, AdminFormData.makeTrackingMap()));
 				} catch (IOException e) {
 					e.printStackTrace();
 					return badRequest(emotion.render(form,
 							PreprocessingChoice.makePreprocessingMap(), false,
-							false));
+							false, AdminFormData.makeTrackingMap()));
 				}
 			}
 		}

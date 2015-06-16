@@ -1,5 +1,5 @@
 @(emotionForm: Form[views.formdata.EmotionFormData], preprocessing:
-Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
+Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean, trackingMap: Map[String, Boolean])
 @import bootstrap3._
 <style>
 .panel-heading .accordion-toggle:after {
@@ -49,21 +49,48 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 		}
 
 		<div class=" col-sm-offset-1">
-@if(dataAvailable){
+
 			<div class="form-group">
 				<label class="col-sm-4 control-label" for="datasource-select">Select
 					datasource:</label>
 				<div class="col-sm-4">
 					<select class="form-control" id="datasource-select"
 						name="datasource-select"> 
+						@if(dataAvailable){
 						<option id="fromQuery" value="fromQuery">Use last query
 							data</option> 
+							}
+						<option id="fromStore" value="fromStore">Load data from
+							our tracking store</option>
+							
 						<option id="fromFile" value="fromFile">Load data from
 							file</option>
 					</select>
 				</div>
 			</div>
-}
+			<!-- Fetching Panel -->
+				<div id="fetching-panel" class="panel panel-default" style="display: none;">
+				<div class="panel-heading" role="tab">
+					<h4 class="panel-title">Load Data From Our Store</h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">   
+					@select(emotionForm("projectName"),
+			          label = "Tracking Projects",
+			          optionMap = trackingMap,
+			          isMultiple = false,
+			          popup = true,
+			          help = "")
+		          </div>
+				  <div class="form-group">   
+					@datepicker(emotionForm("fromDate"), label = "From",
+					placeholder = "dd.mm.yyyy", help = "")
+					@datepicker(emotionForm("toDate"), label = "To", placeholder
+					= "dd.mm.yyyy", help = "")
+					</div>
+				</div>
+			</div>
+			<!-- Fetching Panel -->
 			<!-- Uploading Panel -->
 			<div id="uploading-panel" class="panel panel-default "
 				style="display: none;">
@@ -226,7 +253,6 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean)
 </fieldset>
 
 <script>
-if ($("#datasource-select").length){
 	$("#datasource-select").change(function() {
 		$("#datasource-select option:selected").each(function() {
 			if ($(this).attr("value") == "fromQuery") {
@@ -235,12 +261,15 @@ if ($("#datasource-select").length){
 			}
 			if ($(this).attr("value") == "fromFile") {
 				$("#uploading-panel").show();
+				$("#fetching-panel").hide();
+			}
+			
+			if ($(this).attr("value") == "fromStore") {
+				$("#fetching-panel").show();
+				$("#uploading-panel").hide();
 			}
 		});
 	}).change();
-}
-else
-	$("#uploading-panel").show();
 	
 	$('#plots-menu li').click(function(e) {
 		$('#plots-menu li.active').removeClass('active');

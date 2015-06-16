@@ -5,7 +5,7 @@ import java.util.SortedSet;
 
 import net.sf.javaml.core.Instance;
 
-import org.jfree.data.time.Day;
+import org.jfree.data.time.Second;
 
 import controllers.managers.ClassNumberForm;
 
@@ -19,7 +19,7 @@ public class TimedClassifiedData {
 
 	// data fields
 	private static ClassNumberForm form;
-	private Day date;
+	private Second date;
 	private ArrayList<Instance> classifiedData;
 
 	/**
@@ -30,7 +30,7 @@ public class TimedClassifiedData {
 	 * @param classifiedData
 	 *            Data for this object.
 	 */
-	public TimedClassifiedData(Day date, ArrayList<Instance> classifiedData) {
+	public TimedClassifiedData(Second date, ArrayList<Instance> classifiedData) {
 		this.date = date;
 		this.classifiedData = classifiedData;
 	}
@@ -40,7 +40,7 @@ public class TimedClassifiedData {
 	 * 
 	 * @return The date of this object.
 	 */
-	public Day getDate() {
+	public Second getDate() {
 		return date;
 	}
 
@@ -50,7 +50,7 @@ public class TimedClassifiedData {
 	 * @param date
 	 *            The date you want to set.
 	 */
-	public void setDate(Day date) {
+	public void setDate(Second date) {
 		this.date = date;
 	}
 

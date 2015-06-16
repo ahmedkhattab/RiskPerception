@@ -4,7 +4,7 @@ help:String = "")
     margin-top: -10px;
 ">
 		<label for="@(field.id+ "_picker")" class="col-sm-2 control-label">@label</label>
-		<div class="input-group col-sm-3" id="@(field.id+ "_picker")" style="min-width: 175px;">
+		<div class="input-group col-sm-3" id="@(field.id+ "_picker")" style="min-width: 200px;">
 			<input id="@field.id" name="@field.name" type="text" class="date-picker form-control"
 				placeholder="@placeholder"  value="@field.value.getOrElse("")" /> <label for="@field.id"
 				class="input-group-addon btn"><span

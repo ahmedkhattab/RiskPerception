@@ -15,11 +15,15 @@ import java.util.Locale;
 
 import javax.swing.JOptionPane;
 
+import org.jongo.MongoCursor;
+
 import com.mongodb.DBObject;
 
 import controllers.dataLayer.dataCollectors.TwitterCollector;
 import tools.InputOptionCollection;
+import tools.DataTypes.ClassCounter;
 import tools.DataTypes.TimedMessage;
+import twitter4j.Status;
 import controllers.dataLayer.DataContainer;
 
 /**
@@ -210,7 +214,7 @@ public class DataManager implements Serializable{
 	
 	public void collectRawData(String text, String since, String until,
 			String language) {
-		removeData();
+		removeRawData();
 			addRawDataFromTwitter(text, since, until, language);
 	}
 
@@ -414,7 +418,19 @@ public class DataManager implements Serializable{
 		dataContainer.setData(resultList);
 		return true;
 	}
-
+	
+	public boolean setRawTweets(Iterable<Status> tweets) {
+		ArrayList<TimedMessage> tweetList = new ArrayList<TimedMessage>();
+		for (Status tweet : tweets) {
+			TimedMessage timedMessage = new TimedMessage(
+					tweet.getCreatedAt(), tweet.getText());
+			tweetList.add(timedMessage);
+		}
+		dataContainer.setData(tweetList);
+		// Close method
+	
+		return true;		
+	}
 	/**
 	 * This method extracts the data from the files and converts them to a
 	 * arrayList.
