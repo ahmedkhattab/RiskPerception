@@ -17,8 +17,10 @@ var toVisData = function(interactions){
 		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png'});
 		            addedUsers[user] = "";
 	            }
-	            instances.push({id: id, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
-	            addedTweets[id] = "";
+	            if(!addedTweets.hasOwnProperty(id)){
+		            instances.push({id: id, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
+		            addedTweets[id] = "";
+	            }
 	            for(var retweeter in i.retweetedBy)
 	            {
 	            	if(retweeter > 50)
