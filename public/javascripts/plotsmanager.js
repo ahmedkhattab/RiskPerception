@@ -335,7 +335,7 @@ function getTimeSeriesOptions(plotType, dataType) {
 		yAxis : {
 			labels: {
 			   formatter: function () {
-				  return (plotType == "emotion" || dataType == "metric" ) ? this.value : categories[this.value];
+				  return (plotType == "emotion" || plotType == "count" || dataType == "metric" ) ? this.value : categories[this.value];
                }
 			}
 		},
