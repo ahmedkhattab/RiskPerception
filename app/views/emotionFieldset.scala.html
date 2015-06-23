@@ -403,7 +403,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean, trackin
 		if (!$(this).closest('li').hasClass('active')) {
 			$('#range-value').hide();
 			if($(this).data("model"))
-				showTimeSeriesChart($(this).data("model"), "emotion");
+				showInstanceCountChart($(this).data("model"));
 			else{
 				showTimeSeriesChart(null, "emotion");
 				var chart = $('#container').highcharts();
@@ -411,7 +411,7 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean, trackin
 				jsRoutes.controllers.EmotionMeasurementController.handlePlot('count-date').ajax({
 					success : function(data) {
 						$('#count-date').data("model", data);
-						chart = showTimeSeriesChart(data, "emotion");
+						chart = showInstanceCountChart(data);
 					},
 					error : function() {
 						alert("Error!")

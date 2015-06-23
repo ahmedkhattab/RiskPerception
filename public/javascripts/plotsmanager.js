@@ -278,7 +278,7 @@ function getTimeSeriesOptions(plotType, dataType) {
 	var categories = ["neutral", "positiv", "negativ"];
 	var options = {
 		title : {
-			text : (plotType == "emotion") ? 'Emotion Values Timeseries' : 'Classification Values Timeseries'
+			text : (plotType == "emotion") ? 'Emotion Values Timeseries' : (plotType == "count") ? "Instance Count Timeseries" : 'Classification Values Timeseries'
 		},
 		loading : {
 			hideDuration : 1000,
@@ -341,7 +341,7 @@ function getTimeSeriesOptions(plotType, dataType) {
 		},
 		series : [ {
 			type : 'area',
-			name : (plotType == "emotion") ? 'Emotion measurement' : "Classification Values"
+			name : (plotType == "emotion") ? 'Emotion measurement' : (plotType == "count") ? "Instance count" : "Classification Values"
 		} ]
 	};
 	return options;
@@ -356,6 +356,15 @@ function showCrossValidationChart(data, folds) {
 	else
 		options.title.text = 'Please enter number of folds'
 		
+	$('#container').highcharts(options);
+}
+function showInstanceCountChart(data) {
+
+	var options = getTimeSeriesOptions("count", null);
+	if (data != null)
+		options.series[0].data = data.data;
+	else
+		options.series[0].data = [];
 	$('#container').highcharts(options);
 }
 function showTimeSeriesChart(data, plotType, dataType) {
