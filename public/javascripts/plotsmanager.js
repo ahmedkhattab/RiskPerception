@@ -7,6 +7,9 @@
  */
 function getDistributionBarOptions() {
 	var options = {
+			exporting: {
+				url:'http://vmkrcmar59.informatik.tu-muenchen.de:9090/highcharts-export-web/'
+			},
 	        chart: {
 	            type: 'column'
 	        },
@@ -51,6 +54,9 @@ function getDistributionBarOptions() {
 }
 function getMeasurablePieOtions(type) {
 	var options = {
+			exporting: {
+				url:'http://vmkrcmar59.informatik.tu-muenchen.de:9090/highcharts-export-web/'
+			},
 		chart : {
 			plotBackgroundColor : null,
 			plotBorderWidth : 1,// null,
@@ -87,6 +93,9 @@ function getMeasurablePieOtions(type) {
 function getValuesRegressionOptions(type) {
 
 	var options = {
+			exporting: {
+				url:'http://vmkrcmar59.informatik.tu-muenchen.de:9090/highcharts-export-web/'
+			},
 		chart : {
 			type : 'scatter',
 			zoomType : 'xy'
@@ -155,6 +164,9 @@ function getValuesRegressionOptions(type) {
 function getClassificationTimeseriesOptions() {
 	var categories = ["negativ", "neutral", "positiv"];
 	var options = {
+			exporting: {
+				url:'http://vmkrcmar59.informatik.tu-muenchen.de:9090/highcharts-export-web/'
+			},
 		chart : {
 			type : 'scatter',
 			zoomType : 'x'
@@ -232,6 +244,9 @@ function getClassificationTimeseriesOptions() {
 }
 function getCrossValidationOptions(folds) {
 	var options = {
+			exporting: {
+				url:'http://vmkrcmar59.informatik.tu-muenchen.de:9090/highcharts-export-web/'
+			},
 		title : {
 			text : 'Cross-Validation Results'
 		},
@@ -277,6 +292,9 @@ function getCrossValidationOptions(folds) {
 function getTimeSeriesOptions(plotType, dataType) {
 	var categories = ["neutral", "positiv", "negativ"];
 	var options = {
+			exporting: {
+				url:'http://vmkrcmar59.informatik.tu-muenchen.de:9090/highcharts-export-web/'
+			},
 		title : {
 			text : (plotType == "emotion") ? 'Emotion Values Timeseries' : (plotType == "count") ? "Instance Count Timeseries" : 'Classification Values Timeseries'
 		},
