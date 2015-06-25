@@ -263,12 +263,15 @@ public class ClassifierCollection implements Serializable {
 		for (int i = 0; i < dataToClassify.size(); i++) {
 			Instance inst = dataToClassify.get(i);
 			Instance instance = inst.copy();
-			long startTime = System.currentTimeMillis();
-			instance.setClassValue(classifier.classify(instance));
+			//long startTime = System.currentTimeMillis();
+			Object instanceClass = classifier.classify(instance);
+			if(instanceClass == null)
+				continue;
+			instance.setClassValue(instanceClass);
 			result.add(instance);
-			double resultTime = (System.currentTimeMillis() - startTime) * 1.0 / 1000;
+			/*	double resultTime = (System.currentTimeMillis() - startTime) * 1.0 / 1000;
 			resultTime = Math.round(resultTime * 100) * 1.0 / 100;
-		/*	WaitCalculatingForm.setText("Calculating " + i + " of "
+			WaitCalculatingForm.setText("Calculating " + i + " of "
 					+ dataToClassify.size() + " (" + resultTime
 					+ " sec./inst.)");*/
 		}

@@ -51,7 +51,7 @@ public class WekaClassifier implements Classifier {
         	}
         	else return null;
         } catch (Exception e) {
-            throw new WekaException(e);
+        	return null;
         }
     }
 
