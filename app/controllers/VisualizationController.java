@@ -144,7 +144,7 @@ public class VisualizationController extends Controller {
 			if(thisStatus.getRetweetedStatus() != null)
 			{
 				twitter4j.Status retweetedStatus = thisStatus.getRetweetedStatus();
-				if(interactions.get(retweetedStatus+"") == null)
+				if(interactions.get(retweetedStatus.getId()+"") == null)
 				{
 					User originator = retweetedStatus.getUser();
 					ObjectNode interaction = interactions.putObject(retweetedStatus.getId()+"");
