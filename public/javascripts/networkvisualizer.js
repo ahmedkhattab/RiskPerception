@@ -17,20 +17,20 @@ var toVisData = function(interactions, skipSingletons){
 	            if(i.singleton == skipSingletons)
 	            	continue;
 	            if(!addedUsers.hasOwnProperty(user)){
-		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png'});
+		            instances.push({id: user, label: user, value: i.popularity, shape: 'image', image: '/assets/images/user.png', title: i.popularity+' followers'});
 		            addedUsers[user] = "";
 	            }
 	            if(!addedTweets.hasOwnProperty(id)){
 		            instances.push({id: id, shape: 'circle', label:'', title: i.message, color: toColor(i.class)});
 		            addedTweets[id] = "";
-	            }
+	            } 
 	            for(var retweeter in i.retweetedBy)
 	            {
 	            	if(retweeter > 50)
 	            		break;
             		retweeter = i.retweetedBy[retweeter];
 	            	if(!addedUsers.hasOwnProperty(retweeter.name)){
-	 		            instances.push({id: retweeter.name, label: retweeter.name, shape: 'image', image: '/assets/images/user.png', value: retweeter.popularity});
+	 		            instances.push({id: retweeter.name, label: retweeter.name, shape: 'image', image: '/assets/images/user.png', value: retweeter.popularity, , title: retweeter.popularity+' followers'});
 	 		           addedUsers[retweeter.name] = "";
 	            	}
 	            	edges.push({from: id, to: retweeter.name, color: toColor(i.class) });
@@ -43,7 +43,7 @@ var toVisData = function(interactions, skipSingletons){
 			            addedTweets[reply.id] = "";
 		            }
 		            if(!addedUsers.hasOwnProperty(reply.creator)){
-	 		            instances.push({id: reply.creator, label: reply.creator, shape: 'image', image: '/assets/images/user.png', value: reply.popularity});
+	 		            instances.push({id: reply.creator, label: reply.creator, shape: 'image', image: '/assets/images/user.png', value: reply.popularity, title: reply.popularity+' followers'});
 	 		            addedUsers[reply.creator] = "";
 	            	}
 	            	edges.push({from: reply.id, to: id, color: toColor(reply.class), dashes: true });
