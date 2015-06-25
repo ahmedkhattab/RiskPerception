@@ -30,7 +30,7 @@ var toVisData = function(interactions, skipSingletons){
 	            		break;
             		retweeter = i.retweetedBy[retweeter];
 	            	if(!addedUsers.hasOwnProperty(retweeter.name)){
-	 		            instances.push({id: retweeter.name, label: retweeter.name, shape: 'image', image: '/assets/images/user.png', value: retweeter.popularity, , title: retweeter.popularity+' followers'});
+	 		            instances.push({id: retweeter.name, label: retweeter.name, shape: 'image', image: '/assets/images/user.png', value: retweeter.popularity, title: retweeter.popularity+' followers'});
 	 		           addedUsers[retweeter.name] = "";
 	            	}
 	            	edges.push({from: id, to: retweeter.name, color: toColor(i.class) });
