@@ -156,7 +156,7 @@ public class Global extends GlobalSettings {
 				}
 			}
 		};
-		FiniteDuration delay = FiniteDuration.create(delayInSeconds, TimeUnit.SECONDS);
+		FiniteDuration delay = FiniteDuration.create(0, TimeUnit.SECONDS);
 		FiniteDuration frequency = FiniteDuration.create(1, TimeUnit.DAYS);
 		job = Akka
 				.system()
