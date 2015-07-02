@@ -16,12 +16,14 @@ import java.util.TreeMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import models.LanguageChoice;
 import play.Logger;
 import play.Play;
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.data.validation.Constraints.Required;
 import play.libs.Json;
+import tools.Utils;
 
 public class AdminFormData {
 	/**
@@ -41,8 +43,9 @@ public class AdminFormData {
 	  public String projectName = "";
 	  @Required(message = "")
 	  public String token = "";
-	 
-
+	  @Required(message = "")
+	  public String lang = "";
+	  public String customLang = "";
 	  /** Required for form instantiation. */
 	  public AdminFormData() {
 	  }
@@ -54,6 +57,8 @@ public class AdminFormData {
 			  File[] directoryListing = dir.listFiles();
 			  if (directoryListing != null) {
 			    for (File child : directoryListing) {
+			    	if(child.getName().equals("language_map"))
+			    		continue;
 			    	String projectName = child.getName();
 			    	trackingMap.put(projectName, false);
 			    }
@@ -139,5 +144,38 @@ public class AdminFormData {
 		}
 		
 	}
+	public static LanguageChoice getLanguage(String projectName) {
+			HashMap<String, String> language_map = (HashMap<String, String>) Utils.loadObject("language_map");
+			if(language_map == null)
+			{	
+				//bootstrap a new language map if it was not already created
+				language_map = new HashMap<String, String>();
+				language_map.put(projectName, LanguageChoice.getDefaultLang().getId());
+				Utils.saveObject("language_map", language_map);
+				return LanguageChoice.getDefaultLang();
+			}
+			else
+			{
+				String entry = language_map.get(projectName);
+				if(entry == null)
+				{
+					language_map.put(projectName, LanguageChoice.getDefaultLang().getId());
+					Utils.saveObject("language_map", language_map);
+					return LanguageChoice.getDefaultLang();
+				}
+				
+				if(entry.equals("any"))
+					return new LanguageChoice("any", "any");
+				
+				LanguageChoice lang = LanguageChoice.findLang(language_map.get(projectName));
+				if(lang == null)
+				{
+					return new LanguageChoice(language_map.get(projectName), "custom");
+				}
+				else 
+					return lang;
+
+			}
 	}
+}
 

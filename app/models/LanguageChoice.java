@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Represent a Grade Point Average. 
@@ -53,7 +54,23 @@ public class LanguageChoice {
     }
     return langMap;
   }
-
+  
+  /**
+   * Create a map of Language choices -> boolean where the boolean is true if the language is selected.
+   * @return A map of Language choices to boolean indicating which one is selected
+   */
+  public static Map<String, Boolean> makeTrackingLanguageMap() {
+    Map<String, Boolean> langMap = new TreeMap<String, Boolean>();
+    for (LanguageChoice lang : allLangs) {
+    	if(lang.getId().equals(getDefaultLang().getId()))
+    		langMap.put(lang.getName(),  true);
+    	else
+    		langMap.put(lang.getName(),  false);
+    }
+    langMap.put("any", false);
+    langMap.put("custom...", false);
+    return langMap;
+  }
   /**
    * Return the LanguageChoice instance in the database with name 'langName' or null if not found.
    * @param langName The language
@@ -63,6 +80,9 @@ public class LanguageChoice {
     for (LanguageChoice lang : allLangs) {
       if (langName.equals(lang.getName())) {
         return lang;
+      }
+      else if (langName.equals(lang.getId())){
+    	  return lang;
       }
     }
     return null;
@@ -89,6 +109,7 @@ public class LanguageChoice {
 	  allLangs.add(new LanguageChoice("en", "English"));
 	  allLangs.add(new LanguageChoice("de", "Deutsch"));
 	  allLangs.add(new LanguageChoice("fr", "French"));
+
   }
 
 

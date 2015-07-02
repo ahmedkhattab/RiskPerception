@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -90,9 +91,16 @@ public class Global extends GlobalSettings {
 				if (directoryListing != null) {
 					for (File child : directoryListing) {
 						String projectName = child.getName();
+						
 						if(projectName.endsWith("~"))
 							continue;
 						Logger.info("querying for project: " + projectName);
+						HashMap<String, String> language_map = (HashMap<String, String>) Utils.loadObject("language_map");
+						String lang = language_map.get(projectName);
+						Logger.info("querying for language: " + lang);
+						
+						if(lang.equals("any"))
+							lang = null;
 						try {
 							FileInputStream fis = new FileInputStream(child);
 
@@ -117,7 +125,7 @@ public class Global extends GlobalSettings {
 								now.add(Calendar.DAY_OF_WEEK, -7);
 								dataManager.collectRawData(query,
 										sdfDate.format(now.getTime()),
-										sdfDate.format(current), "en");
+										sdfDate.format(current), lang);
 								ArrayList<DBObject> tweets = dataManager
 										.getRawData();
 								Logger.info("inserting: " + tweets.size()

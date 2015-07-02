@@ -1,6 +1,7 @@
 @(adminForm: Form[views.formdata.AdminFormData],
 createProjectForm: Form[views.formdata.CreateProjectFormData],
-  trackingMap: Map[String, Boolean]) 
+  trackingMap: Map[String, Boolean],
+   lang: Map[String, Boolean]) 
 
 @import helper._ 
 @import bootstrap3.textarea
@@ -47,6 +48,26 @@ createProjectForm: Form[views.formdata.CreateProjectFormData],
 			        fieldType = "password")
 			        
 			@textarea(adminForm("keywordsFile"), label = "Keywords File", placeholder = "$- keyword1 OR keyword2 ...", help = "In case of multiple queries, use \"$-\" to denote the start of each query" )
+			
+			 @select(adminForm("lang"),
+	          label = "Language",
+	          optionMap = lang,
+	          isMultiple = false,
+	          help = "")
+	          
+			    <div id="customLangDiv" class="form-group" style="display: none;">
+			    <label class="col-sm-2 control-label" >Custom Language</label>
+			    <div class="col-sm-10">
+			      <input type="text"
+			             class="form-control" 
+			             id="customLang" 
+			             name="customLang" 
+			             value=""
+			        />
+			      <span class="help-block">use a language iso code e.g. en, de, fr, ..</span>
+			    </div>
+			  </div>
+			
 			</div>
 			
 			 <div class="form-group">
@@ -77,16 +98,15 @@ createProjectForm: Form[views.formdata.CreateProjectFormData],
 							<label class="col-sm-5 control-label">Project Name</label>
 							<div class="col-sm-2" style="width: 130px;">
 								<input type="text" class="form-control input-sm"
-									name="new_project_name" value=";" placeholder="" /> <span
+									name="new_project_name" value="" placeholder="" /> <span
 									class="help-block"></span>
 							</div>
 						</div>
-						
 						<div class="form-group">
 							<label class="col-sm-5 control-label">Security Token</label>
 							<div class="col-sm-2" style="width: 130px;">
 								<input type="password" class="form-control input-sm"
-									name="security_token" value=";" placeholder="" /> <span
+									name="security_token" value="" placeholder="" /> <span
 									class="help-block"></span>
 							</div>
 						</div>
@@ -124,13 +144,47 @@ $('#new_project .btn-primary').click(function() {
 		}
 	});
 });
+$('#lang').change(function()
+		{
+						
+	var language = $('#lang option:selected').text();
+	if(language == "custom...")
+		$('#customLangDiv').show();
+	else
+		$('#customLangDiv').hide();
+
+
+		});
 $('#projectName').change(function() {
 	var projectName = $('#projectName option:selected').text();
 	if(projectName)
 		{
 	jsRoutes.controllers.MainController.keywords(projectName).ajax({
 		success : function(data) {
-			$('#keywordsFile').text(data);
+			$('#keywordsFile').text(data.keywords);
+			if(data.lang)
+				{
+					$('#customLangDiv').hide();
+					$('#lang').val(data.lang);
+				}
+			else
+				{
+				if(data.customLang)
+				
+					{
+						$('#lang').val("custom...");
+						$('#customLangDiv').show();
+						$('#customLang').val(data.customLang);
+					}
+				}
+		},
+		error : function() {
+			alert("Error!")
+		}
+	});
+	jsRoutes.controllers.MainController.language(projectName).ajax({
+		success : function(data) {
+			
 		},
 		error : function() {
 			alert("Error!")

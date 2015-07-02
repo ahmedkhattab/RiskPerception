@@ -225,7 +225,8 @@ public class TwitterCollector implements controllers.dataLayer.IDataCollector {
 		// Create Query
 		status = "Twitter: Creating Query";
 		Query query = new Query(apiQuery);
-		query.setLang(language);
+		if(language != null)
+			query.setLang(language);
 		if (since != "") {
 			query.setSince(since);
 		}

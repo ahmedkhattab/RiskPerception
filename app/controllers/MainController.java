@@ -3,12 +3,16 @@ package controllers;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import models.LanguageChoice;
 import models.PreprocessingChoice;
@@ -50,12 +54,19 @@ public class MainController extends Controller {
 		AdminFormData queryData = new AdminFormData();
 		Form<AdminFormData> formData = Form.form(AdminFormData.class).fill(
 				queryData);
-		return ok(admin.render(formData, queryData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+		return ok(admin.render(formData, queryData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
 	}
 	
 	public static Result keywords(String projectName) {
-		response().setContentType("text/plain");
-		return ok(AdminFormData.getKeywords(projectName));
+		response().setContentType("application/json");
+		ObjectNode result = Json.newObject();
+		result.put("keywords", AdminFormData.getKeywords(projectName));
+		LanguageChoice lang = AdminFormData.getLanguage(projectName);
+		if(lang.getName().equals("custom"))
+			result.put("customLang", lang.getId());
+		else
+			result.put("lang", lang.getName());
+		return ok(result);
 	}
 
 	/**
@@ -138,13 +149,11 @@ public class MainController extends Controller {
 		} else {
 			if (token.equals("mrpa59")) {
 				try {
-					
 					FileWriter file;
 					file = new FileWriter(Play.application().getFile("private/tracking/"+projectName));
 					file.flush();
 					file.close();
 					response().setContentType("text/plain");
-
 					return ok("New project created successfully !");
 
 				} catch (IOException e) {
@@ -170,7 +179,7 @@ public class MainController extends Controller {
 			Form<AdminFormData> newData = Form.form(AdminFormData.class)
 					.fill(adminData);
 			flash("error", "Missing fields required !");
-			return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+			return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
 		} else {
 			AdminFormData data = formData.get();
 			if (data.token.equals("mrpa59")) {
@@ -178,15 +187,27 @@ public class MainController extends Controller {
 					/*if(Utils.isValidJSON(data.keywordsFile))
 					{
 					*/
-			
+					HashMap<String, String> language_map = (HashMap<String, String>) Utils.loadObject("language_map");
+					if(language_map == null)
+						language_map = new HashMap<String, String>();
+					if(data.lang.equals("custom..."))
+						language_map.put(data.projectName, data.customLang);
+					else
+						if(data.lang.equals("any"))
+							language_map.put(data.projectName, data.lang);
+						else //this means the user chose "any"
+							language_map.put(data.projectName, LanguageChoice.findLang(data.lang).getId());
+
+
 					FileWriter file;
 					file = new FileWriter(Play.application().getFile("private/tracking/"+data.projectName));
 					file.write(data.keywordsFile);
 					file.flush();
 					file.close();
+					Utils.saveObject("language_map", language_map);
 					flash("success",
-							"Keywords file updated successfully !");
-					return ok(admin.render(formData, data.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+							"Tracking project updated successfully !");
+					return ok(admin.render(formData, data.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
 					/*
 					}
 					else
@@ -205,7 +226,7 @@ public class MainController extends Controller {
 					Form<AdminFormData> newData = Form.form(AdminFormData.class)
 							.fill(adminData);
 					flash("error", "Error updating keywords file !");
-					return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+					return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
 				}
 			}
 			else
@@ -214,7 +235,7 @@ public class MainController extends Controller {
 				AdminFormData adminData = new AdminFormData();
 				Form<AdminFormData> newData = Form.form(AdminFormData.class)
 						.fill(adminData);
-				return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));
+				return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
 			}
 
 		}
