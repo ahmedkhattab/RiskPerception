@@ -30,7 +30,9 @@ import controllers.managers.DataManager;
 import controllers.managers.EmotionMeasurementManager;
 
 /**
- * The controller for the single page of this application.
+ * This controller is the server side code for the emotion
+ * measurement page. Used to handle serving the page, 
+ * form submissions and ajax requests
  * 
  * @author Ahmed Khattab
  */

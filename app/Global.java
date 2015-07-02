@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
@@ -12,25 +11,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
-
 import play.Application;
 import play.GlobalSettings;
 import play.Logger;
 import play.Play;
 import play.libs.Akka;
-import play.libs.Json;
 import scala.concurrent.duration.FiniteDuration;
 import tools.Utils;
 import uk.co.panaxiom.playjongo.PlayJongo;
 import akka.actor.Cancellable;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.InsertOptions;
-import com.mongodb.WriteResult;
 
 import controllers.managers.ClassificationManager;
 import controllers.managers.ClassifierCollection;
@@ -38,6 +31,20 @@ import controllers.managers.DataManager;
 
 public class Global extends GlobalSettings {
 
+	/*
+	 * The following variables are used to control the tracking job
+	 * 
+	 * - the tracking frequency (in days) is used to control how often
+	 * the job is repeated (1 means every day)
+	 * 
+	 * - The tracking delay, is used to determine the time delay between
+	 * starting the application and running the tracking job, this can be
+	 * used to run the job at a specific hour of the day.
+	 */
+	final static int TRACKING_QUERY_FREQUENCY = 1;
+	final static int TRACKING_DELAY = 0;
+	
+	
 	private Cancellable job;
 
 	@Override
@@ -64,24 +71,8 @@ public class Global extends GlobalSettings {
 	}
 
 	private void runJob() {
-
-		Long delayInSeconds;
-
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.HOUR_OF_DAY, 16);
-		c.set(Calendar.MINUTE, 10);
-		c.set(Calendar.SECOND, 0);
-		Date plannedStart = c.getTime();
-		Date today = new Date();
-		Date nextRun;
-		if (today.after(plannedStart)) {
-			c.add(Calendar.DAY_OF_WEEK, 1);
-			nextRun = c.getTime();
-		} else {
-			nextRun = c.getTime();
-		}
-		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000;
-		Runnable showTime = new Runnable() {
+		
+		Runnable trackingJob = new Runnable() {
 			@Override
 			public void run() {
 
@@ -117,15 +108,20 @@ public class Global extends GlobalSettings {
 
 								DataManager dataManager = new DataManager();
 								dataManager.setTwitterMaxPages(100);
+								
+								//calculate the From and To dates
 								Date current = new Date();
 								SimpleDateFormat sdfDate = new SimpleDateFormat(
 										"yyyy-MM-dd");
-								Calendar now = Calendar.getInstance();
-								now.setTime(current);
-								now.add(Calendar.DAY_OF_WEEK, -7);
+								Calendar from = Calendar.getInstance();
+								from.setTime(current);
+								from.add(Calendar.DAY_OF_WEEK, -7);
 								dataManager.collectRawData(query,
-										sdfDate.format(now.getTime()),
+										sdfDate.format(from.getTime()),
 										sdfDate.format(current), lang);
+								
+								//use DataManager to fetch data from Twitter
+								//the API calls are done using the Twitter4j library
 								ArrayList<DBObject> tweets = dataManager
 										.getRawData();
 								Logger.info("inserting: " + tweets.size()
@@ -134,9 +130,10 @@ public class Global extends GlobalSettings {
 										.getCollection(projectName)
 										.getDBCollection();
 								try{
-								tweetsCollection.insert(tweets,
-										new InsertOptions()
-												.continueOnError(true));
+									//setting continueOnError to skip errors for duplicate IDs
+									tweetsCollection.insert(tweets,
+											new InsertOptions()
+													.continueOnError(true));
 								}
 								catch(Exception e)
 								{
@@ -156,12 +153,36 @@ public class Global extends GlobalSettings {
 				}
 			}
 		};
-		FiniteDuration delay = FiniteDuration.create(0, TimeUnit.SECONDS);
-		FiniteDuration frequency = FiniteDuration.create(1, TimeUnit.DAYS);
+		
+		
+		/*
+		 * This code is used to dynamically set the delay 
+		 * so the job runs always at 16:00 (4:00 pm) everyday
+		 * 
+		Long delayInSeconds;
+
+		Calendar c = Calendar.getInstance();
+		c.set(Calendar.HOUR_OF_DAY, 16);
+		c.set(Calendar.MINUTE, 10);
+		c.set(Calendar.SECOND, 0);
+		Date plannedStart = c.getTime();
+		Date today = new Date();
+		Date nextRun;
+		if (today.after(plannedStart)) {
+			c.add(Calendar.DAY_OF_WEEK, 1);
+			nextRun = c.getTime();
+		} else {
+			nextRun = c.getTime();
+		}
+		delayInSeconds = (nextRun.getTime() - today.getTime()) / 1000;		
+		*
+		*/
+		FiniteDuration delay = FiniteDuration.create(TRACKING_DELAY, TimeUnit.SECONDS);
+		FiniteDuration frequency = FiniteDuration.create(TRACKING_QUERY_FREQUENCY, TimeUnit.DAYS);
 		job = Akka
 				.system()
 				.scheduler()
-				.schedule(delay, frequency, showTime,
+				.schedule(delay, frequency, trackingJob,
 						Akka.system().dispatcher());
 	}
 

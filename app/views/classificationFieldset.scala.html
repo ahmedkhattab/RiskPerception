@@ -358,7 +358,8 @@ resultsAvailable: Boolean, trackingMap: Map[String, Boolean]) @import bootstrap3
 				$("#visualization").show();
 				$("#folds").hide();
 				$('#more-plots').show();
-				$('#save-form').show();
+				if($("#datasource-select option:selected").val() != "fromStore")
+					$('#save-form').show();
 				showTimeSeriesChart(null, "classification", "nominal");
 				var chart = $('#container').highcharts();
 				chart.showLoading();

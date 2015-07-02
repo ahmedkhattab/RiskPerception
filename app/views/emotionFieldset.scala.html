@@ -508,6 +508,8 @@ Map[String, Boolean], dataAvailable: Boolean, resultsAvailable: Boolean, trackin
 		 chart.showLoading();
 		 jsRoutes.controllers.EmotionMeasurementController.handlePlot('em-val').ajax({
 		        success: function(data) {
+					if($("#datasource-select option:selected").val() == "fromStore")
+						$('#save').hide();
 		        	$('#em-val').data("model", data);
 		        	chart = showTimeSeriesChart(data, "emotion");
 		        },

@@ -27,7 +27,9 @@ import controllers.managers.ClassificationManager;
 import controllers.managers.ClassifierCollection;
 
 /**
- * The controller for the single page of this application.
+ * This controller is the server side code for the classification
+ * page. Used to handle serving the page, 
+ * form submissions and ajax requests
  * 
  * @author Ahmed Khattab
  */

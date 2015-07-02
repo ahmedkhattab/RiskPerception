@@ -38,7 +38,11 @@ import controllers.managers.EmotionMeasurementManager;
 import controllers.managers.TagCloudBuilder;
 
 /**
- * The controller for the single page of this application.
+ * The main controller for the pages of this application.
+ * Responsible for serving the index page and the admin page
+ * Also responsible for setting the javascript routes (used 
+ * to handle ajax requests) and to handle requests for saving
+ * and downloading generated results as csv files.
  * 
  * @author Ahmed Khattab
  */
@@ -47,22 +51,32 @@ public class MainController extends Controller {
 	/**
 	 * Returns the admin page
 	 * 
-	 * @return The page containing the search form.
+	 * @return The page containing the admin page form.
 	 */
 	public static Result adminPage() {
 
 		AdminFormData queryData = new AdminFormData();
 		Form<AdminFormData> formData = Form.form(AdminFormData.class).fill(
 				queryData);
-		return ok(admin.render(formData, queryData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
+		return ok(admin.render(formData, queryData.getSecondaryForm(),
+				AdminFormData.makeTrackingMap(),
+				LanguageChoice.makeTrackingLanguageMap()));
 	}
-	
+
+	/**
+	 * Takes a tracking project name and returns the information associated it:
+	 * keywords and language
+	 * 
+	 * @return a json object of the form {keywords: " ", lang: " "} in case of
+	 *         one of the default languages /or/ {keywords: " ", customLang: " "}
+	 *         in case the user assigned a custom language for this project
+	 */
 	public static Result keywords(String projectName) {
 		response().setContentType("application/json");
 		ObjectNode result = Json.newObject();
 		result.put("keywords", AdminFormData.getKeywords(projectName));
 		LanguageChoice lang = AdminFormData.getLanguage(projectName);
-		if(lang.getName().equals("custom"))
+		if (lang.getName().equals("custom"))
 			result.put("customLang", lang.getId());
 		else
 			result.put("lang", lang.getName());
@@ -140,9 +154,11 @@ public class MainController extends Controller {
 		}
 		return TODO;
 	}
+
 	public static Result adminCreateProject() {
 		String token = request().body().asJson().get("token").asText();
-		String projectName = request().body().asJson().get("projectName").asText();
+		String projectName = request().body().asJson().get("projectName")
+				.asText();
 		if (token.equals("") || projectName.equals("")) {
 			response().setContentType("text/plain");
 			return internalServerError("missing fields required !");
@@ -150,7 +166,8 @@ public class MainController extends Controller {
 			if (token.equals("mrpa59")) {
 				try {
 					FileWriter file;
-					file = new FileWriter(Play.application().getFile("private/tracking/"+projectName));
+					file = new FileWriter(Play.application().getFile(
+							"private/tracking/" + projectName));
 					file.flush();
 					file.close();
 					response().setContentType("text/plain");
@@ -161,9 +178,7 @@ public class MainController extends Controller {
 
 					return internalServerError("Could not create project, please try again");
 				}
-			}
-			else
-			{
+			} else {
 				response().setContentType("text/plain");
 
 				return internalServerError("Invalid token");
@@ -171,71 +186,80 @@ public class MainController extends Controller {
 
 		}
 	}
+
 	public static Result postAdmin() {
 		Form<AdminFormData> formData = Form.form(AdminFormData.class)
 				.bindFromRequest();
 		if (formData.hasErrors()) {
 			AdminFormData adminData = new AdminFormData();
-			Form<AdminFormData> newData = Form.form(AdminFormData.class)
-					.fill(adminData);
+			Form<AdminFormData> newData = Form.form(AdminFormData.class).fill(
+					adminData);
 			flash("error", "Missing fields required !");
-			return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
+			return badRequest(admin.render(newData,
+					adminData.getSecondaryForm(),
+					AdminFormData.makeTrackingMap(),
+					LanguageChoice.makeTrackingLanguageMap()));
 		} else {
 			AdminFormData data = formData.get();
 			if (data.token.equals("mrpa59")) {
 				try {
-					/*if(Utils.isValidJSON(data.keywordsFile))
-					{
-					*/
-					HashMap<String, String> language_map = (HashMap<String, String>) Utils.loadObject("language_map");
-					if(language_map == null)
+					/*
+					 * if(Utils.isValidJSON(data.keywordsFile)) {
+					 */
+					HashMap<String, String> language_map = (HashMap<String, String>) Utils
+							.loadObject("language_map");
+					if (language_map == null)
 						language_map = new HashMap<String, String>();
-					if(data.lang.equals("custom..."))
+					if (data.lang.equals("custom..."))
 						language_map.put(data.projectName, data.customLang);
+					else if (data.lang.equals("any"))
+						language_map.put(data.projectName, data.lang);
 					else
-						if(data.lang.equals("any"))
-							language_map.put(data.projectName, data.lang);
-						else //this means the user chose "any"
-							language_map.put(data.projectName, LanguageChoice.findLang(data.lang).getId());
-
+						// this means the user chose "any"
+						language_map.put(data.projectName, LanguageChoice
+								.findLang(data.lang).getId());
 
 					FileWriter file;
-					file = new FileWriter(Play.application().getFile("private/tracking/"+data.projectName));
+					file = new FileWriter(Play.application().getFile(
+							"private/tracking/" + data.projectName));
 					file.write(data.keywordsFile);
 					file.flush();
 					file.close();
 					Utils.saveObject("language_map", language_map);
-					flash("success",
-							"Tracking project updated successfully !");
-					return ok(admin.render(formData, data.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
+					flash("success", "Tracking project updated successfully !");
+					return ok(admin.render(formData, data.getSecondaryForm(),
+							AdminFormData.makeTrackingMap(),
+							LanguageChoice.makeTrackingLanguageMap()));
 					/*
-					}
-					else
-					{
-						AdminFormData adminData = new AdminFormData();
-						Form<AdminFormData> newData = Form.form(AdminFormData.class)
-								.fill(adminData);
-						flash("error",
-								"Error parsing json, please check for syntax errors !");
-						return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap()));					
-					}
-					*/
+					 * } else { AdminFormData adminData = new AdminFormData();
+					 * Form<AdminFormData> newData =
+					 * Form.form(AdminFormData.class) .fill(adminData);
+					 * flash("error",
+					 * "Error parsing json, please check for syntax errors !");
+					 * return badRequest(admin.render(newData,
+					 * adminData.getSecondaryForm(),
+					 * AdminFormData.makeTrackingMap())); }
+					 */
 				} catch (IOException e) {
 					e.printStackTrace();
 					AdminFormData adminData = new AdminFormData();
-					Form<AdminFormData> newData = Form.form(AdminFormData.class)
-							.fill(adminData);
+					Form<AdminFormData> newData = Form
+							.form(AdminFormData.class).fill(adminData);
 					flash("error", "Error updating keywords file !");
-					return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
+					return badRequest(admin.render(newData,
+							adminData.getSecondaryForm(),
+							AdminFormData.makeTrackingMap(),
+							LanguageChoice.makeTrackingLanguageMap()));
 				}
-			}
-			else
-			{
+			} else {
 				flash("error", "Invalid token");
 				AdminFormData adminData = new AdminFormData();
 				Form<AdminFormData> newData = Form.form(AdminFormData.class)
 						.fill(adminData);
-				return badRequest(admin.render(newData, adminData.getSecondaryForm(), AdminFormData.makeTrackingMap(), LanguageChoice.makeTrackingLanguageMap()));
+				return badRequest(admin.render(newData,
+						adminData.getSecondaryForm(),
+						AdminFormData.makeTrackingMap(),
+						LanguageChoice.makeTrackingLanguageMap()));
 			}
 
 		}
